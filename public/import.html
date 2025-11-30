@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Import Shoes - Sneaker Collection</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .import-container {
+            max-width: 1400px;
+        }
+        .import-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+        .instructions {
+            background: #f0f7ff;
+            border-left: 4px solid var(--primary-color);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 4px;
+        }
+        .instructions ol {
+            margin-left: 1.5rem;
+            margin-top: 1rem;
+        }
+        .instructions li {
+            margin-bottom: 0.5rem;
+        }
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        .preview-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            border: 2px solid var(--border-color);
+        }
+        .preview-card.selected {
+            border-color: var(--primary-color);
+            background: #f8f9ff;
+        }
+        .preview-images {
+            display: flex;
+            gap: 0.5rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            padding: 0.5rem 0;
+        }
+        .preview-thumb {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 2px solid var(--border-color);
+        }
+        .preview-info {
+            margin: 1rem 0;
+        }
+        .preview-info input {
+            width: 100%;
+            padding: 0.5rem;
+            margin: 0.25rem 0;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+        .preview-info label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            display: block;
+            margin-top: 0.5rem;
+        }
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0.5rem 0;
+        }
+        .checkbox-wrapper input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+        .import-actions {
+            position: sticky;
+            bottom: 0;
+            background: white;
+            padding: 1.5rem;
+            border-top: 2px solid var(--border-color);
+            margin-top: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+        }
+        .stats {
+            display: flex;
+            gap: 2rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        .stats strong {
+            color: var(--primary-color);
+            font-size: 1.125rem;
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            color: white;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .loading-overlay.active {
+            display: flex;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-shoe-prints"></i>
+                <span>Sneaker Collection</span>
+            </div>
+            <nav class="nav">
+                <a href="index.html" class="nav-link">Shop</a>
+                <a href="admin.html" class="nav-link">Admin</a>
+                <a href="import.html" class="nav-link active">Import</a>
+                <a href="images.html" class="nav-link">Images</a>
+                <a href="cart.html" class="nav-link cart-link">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container import-container">
+            <div class="import-header">
+                <h1 class="page-title">Import Shoes - Simple 3-Step Process</h1>
+                <p class="page-subtitle">Drop images → Review → Import. That's it!</p>
+                
+                <!-- Simple 3-Step Guide -->
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin: 2rem 0;">
+                    <div style="background: #e3f2fd; padding: 1.5rem; border-radius: 8px; text-align: center; border: 2px solid #2196f3;">
+                        <div style="font-size: 3rem; font-weight: 700; color: #2196f3; margin-bottom: 0.5rem;">1</div>
+                        <h3 style="margin-bottom: 0.5rem;">Drop Images</h3>
+                        <p style="color: #666; font-size: 0.9rem;">Put your shoe images in the <code>SHOES</code> folder</p>
+                    </div>
+                    <div style="background: #fff3e0; padding: 1.5rem; border-radius: 8px; text-align: center; border: 2px solid #ff9800;">
+                        <div style="font-size: 3rem; font-weight: 700; color: #ff9800; margin-bottom: 0.5rem;">2</div>
+                        <h3 style="margin-bottom: 0.5rem;">Click Import</h3>
+                        <p style="color: #666; font-size: 0.9rem;">Click the big button below to import all new images</p>
+                    </div>
+                    <div style="background: #e8f5e9; padding: 1.5rem; border-radius: 8px; text-align: center; border: 2px solid #4caf50;">
+                        <div style="font-size: 3rem; font-weight: 700; color: #4caf50; margin-bottom: 0.5rem;">3</div>
+                        <h3 style="margin-bottom: 0.5rem;">Done!</h3>
+                        <p style="color: #666; font-size: 0.9rem;">View your shoes on the Shop page</p>
+                    </div>
+                </div>
+
+                <!-- Auto-Import Status -->
+                <div id="autoImportStatus" style="background: #e8f5e9; border-left: 4px solid #4caf50; padding: 1rem; margin: 1.5rem 0; border-radius: 4px;">
+                    <strong><i class="fas fa-check-circle"></i> Auto-Import is ACTIVE</strong>
+                    <p style="margin-top: 0.5rem; font-size: 0.9rem;">
+                        New images in SHOES folder are automatically detected and imported every 10 seconds.
+                        No action needed - just drop images and they'll appear in your store!
+                    </p>
+                </div>
+
+                <!-- Quick Import Button (Manual Override) -->
+                <div style="text-align: center; margin: 2rem 0;">
+                    <button class="btn btn-primary" id="quickImportBtn" style="font-size: 1.25rem; padding: 1.25rem 3rem;">
+                        <i class="fas fa-magic"></i> Import Now (Manual)
+                    </button>
+                    <p style="margin-top: 1rem; color: #666; font-size: 0.9rem;">
+                        Click to manually import new images immediately (auto-import runs every 10 seconds)
+                    </p>
+                </div>
+
+                <!-- Status Summary (Always Visible) -->
+                <div id="quickStatus" style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: var(--shadow); margin-top: 1.5rem;">
+                    <h3 style="margin-bottom: 1rem;"><i class="fas fa-chart-pie"></i> Quick Status</h3>
+                    <div id="quickStatusContent" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 2rem; font-weight: 700; color: #2196f3;">-</div>
+                            <div style="color: #666; font-size: 0.875rem;">Total Images</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 2rem; font-weight: 700; color: #ff9800;">-</div>
+                            <div style="color: #666; font-size: 0.875rem;">New to Import</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 2rem; font-weight: 700; color: #4caf50;">-</div>
+                            <div style="color: #666; font-size: 0.875rem;">Already Imported</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 2rem; font-weight: 700; color: #9c27b0;">-</div>
+                            <div style="color: #666; font-size: 0.875rem;">Shoes in Store</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced Options (Collapsible) -->
+                <details style="margin-top: 2rem; background: #f5f5f5; padding: 1rem; border-radius: 8px;">
+                    <summary style="cursor: pointer; font-weight: 600; padding: 0.5rem;">
+                        <i class="fas fa-cog"></i> Advanced Options (Optional)
+                    </summary>
+                    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #ddd;">
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                            <button class="btn" id="analyzeBtn" style="background: #666; color: white;">
+                                <i class="fas fa-search"></i> Analyze & Review First
+                            </button>
+                            <button class="btn" id="checkStatusBtn" style="background: #2196f3; color: white;">
+                                <i class="fas fa-info-circle"></i> View Detailed Status
+                            </button>
+                        </div>
+                        <p style="color: #666; font-size: 0.875rem;">
+                            Use these if you want to review/edit details before importing, or see which specific files have been imported.
+                        </p>
+                    </div>
+                </details>
+                
+                <div id="statusInfo" style="display: none; background: white; padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow); margin-top: 1.5rem;">
+                    <h3 style="margin-bottom: 1rem;"><i class="fas fa-list-check"></i> Import Status</h3>
+                    <div id="statusContent"></div>
+                </div>
+            </div>
+
+            <div id="previewContainer" style="display: none;">
+                <div style="background: #fff3e0; border-left: 4px solid #ff9800; padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px;">
+                    <strong><i class="fas fa-info-circle"></i> Review Mode:</strong> 
+                    You're reviewing shoes before importing. Edit details below, then click "Import Selected Shoes".
+                </div>
+                
+                <div style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 1rem;">
+                    <h3>Default Values (applied to all new shoes)</h3>
+                    <div class="form-row" style="margin-top: 1rem;">
+                        <div class="form-group">
+                            <label>Default MSRP ($)</label>
+                            <input type="number" id="defaultMsrp" value="120" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>Default Price ($)</label>
+                            <input type="number" id="defaultPrice" value="100" step="0.01">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="previewGrid" class="preview-grid"></div>
+
+                <div class="import-actions">
+                    <div class="stats">
+                        <div>
+                            Found: <strong id="totalCount">0</strong> shoes
+                        </div>
+                        <div>
+                            Selected: <strong id="selectedCount">0</strong> shoes
+                        </div>
+                        <div>
+                            Total Images: <strong id="totalImages">0</strong>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-large" id="importBtn" style="display: none;">
+                        <i class="fas fa-upload"></i> Import Selected Shoes
+                    </button>
+                </div>
+            </div>
+
+            <div id="emptyState" class="no-results">
+                <i class="fas fa-folder-open"></i>
+                <h3>No images analyzed yet</h3>
+                <p>Click "Analyze Images" to scan your SHOES folder</p>
+            </div>
+        </div>
+    </main>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <i class="fas fa-spinner fa-spin" style="font-size: 3rem;"></i>
+        <p id="loadingText">Processing...</p>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Sneaker Collection. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="import.js"></script>
+</body>
+</html>
+

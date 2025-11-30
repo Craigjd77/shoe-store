@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Details - Sneaker Collection</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-shoe-prints"></i>
+                <span>Sneaker Collection</span>
+            </div>
+            <nav class="nav">
+                <a href="index.html" class="nav-link">Shop</a>
+                <a href="login.html" class="nav-link">Admin</a>
+                <a href="cart.html" class="nav-link cart-link">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <a href="index.html" class="back-link">
+                <i class="fas fa-arrow-left"></i> Back to Shop
+            </a>
+
+            <div id="productContainer" class="product-container">
+                <div class="product-gallery">
+                    <div class="main-image-container">
+                        <img id="mainImage" src="" alt="Sneaker" class="main-image">
+                        <button class="image-nav prev" id="prevBtn">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="image-nav next" id="nextBtn">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <div class="thumbnail-container" id="thumbnailContainer"></div>
+                </div>
+
+                <div class="product-info">
+                    <div class="breadcrumb">
+                        <span id="productBrand"></span> / <span id="productModel"></span>
+                    </div>
+                    <h1 id="productTitle"></h1>
+                    <div class="price-section">
+                        <div class="price-current">$<span id="productPrice"></span></div>
+                        <div class="price-msrp">MSRP: $<span id="productMsrp"></span></div>
+                    </div>
+                    <div class="product-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Size:</span>
+                            <span class="detail-value" id="productSize">9</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Gender:</span>
+                            <span class="detail-value" id="productGender">Mens</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Condition:</span>
+                            <span class="detail-value" id="productCondition">New</span>
+                        </div>
+                    </div>
+                    <div class="description-section">
+                        <h3>Description</h3>
+                        <p id="productDescription">No description available.</p>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" id="addToCartBtn">
+                            <i class="fas fa-shopping-cart"></i> Add to Cart
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="loading" class="loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading product...</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Sneaker Collection. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="product.js"></script>
+</body>
+</html>
+

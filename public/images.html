@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View All Images - Sneaker Collection</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        .image-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+        .image-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        .image-info {
+            padding: 1rem;
+        }
+        .image-filename {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            word-break: break-all;
+        }
+        .image-meta {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        .image-status {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            z-index: 10;
+        }
+        .status-processed {
+            background: #4caf50;
+            color: white;
+        }
+        .status-new {
+            background: #ff9800;
+            color: white;
+        }
+        .status-tied {
+            background: #2196f3;
+            color: white;
+        }
+        .btn-sm {
+            padding: 0.5rem;
+            font-size: 0.75rem;
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-shoe-prints"></i>
+                <span>Sneaker Collection</span>
+            </div>
+            <nav class="nav">
+                <a href="index.html" class="nav-link">Shop</a>
+                <a href="admin.html" class="nav-link">Admin</a>
+                <a href="import.html" class="nav-link">Import</a>
+                <a href="images.html" class="nav-link active">All Images</a>
+                <a href="cart.html" class="nav-link cart-link">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <h1 class="page-title">Your Shoe Images</h1>
+            <p class="page-subtitle" style="font-size: 1.1rem; color: #4caf50; font-weight: 600;">
+                <i class="fas fa-magic"></i> Auto-Publish is ON - New images are automatically identified and published!
+            </p>
+            <p style="color: #666; margin-top: 0.5rem;">
+                Just drop images in the SHOES folder. The system will identify the brand, model, color, and price, then publish them automatically.
+            </p>
+
+            <div style="background: #e8f5e9; border-left: 4px solid #4caf50; padding: 1rem; margin: 1.5rem 0; border-radius: 4px;">
+                <strong><i class="fas fa-robot"></i> How It Works:</strong>
+                <ol style="margin: 0.5rem 0 0 1.5rem; padding: 0;">
+                    <li>Drop shoe images in the <code>SHOES</code> folder</li>
+                    <li>System automatically identifies brand, model, and color</li>
+                    <li>System estimates pricing based on brand</li>
+                    <li>Shoe is published to your store automatically</li>
+                    <li>Done! Check the Shop page to see it live</li>
+                </ol>
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+                <button class="btn btn-primary" id="refreshBtn">
+                    <i class="fas fa-sync"></i> Refresh
+                </button>
+                <button class="btn" id="autoImportToggle" style="background: #4caf50; color: white;">
+                    <i class="fas fa-toggle-on"></i> Auto-Publish: ON
+                </button>
+                <button class="btn" onclick="window.location.href='index.html'" style="background: #2196f3; color: white;">
+                    <i class="fas fa-shopping-bag"></i> View Store
+                </button>
+            </div>
+
+            <div id="imagesGrid" class="images-grid"></div>
+            <div id="loading" class="loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading images...</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Sneaker Collection. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="images.js"></script>
+</body>
+</html>
+

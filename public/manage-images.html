@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Images - Sneaker Collection</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .manage-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+        .section h2 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .image-item {
+            position: relative;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .image-item:hover {
+            border-color: var(--primary-color);
+            transform: scale(1.05);
+        }
+        .image-item.selected {
+            border-color: #4caf50;
+            border-width: 3px;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+        }
+        .image-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+        .image-checkbox {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .image-item.selected .image-checkbox {
+            background: #4caf50;
+            border-color: #4caf50;
+            color: white;
+        }
+        .image-item.selected .image-checkbox::after {
+            content: '✓';
+            font-weight: bold;
+        }
+        .image-filename {
+            padding: 0.5rem;
+            font-size: 0.75rem;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            word-break: break-all;
+        }
+        .action-panel {
+            background: #f5f5f5;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+        .selected-count {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #4caf50;
+            margin-bottom: 1rem;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .btn-action {
+            flex: 1;
+            min-width: 150px;
+        }
+        .shoes-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .shoe-item {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .shoe-item:hover {
+            border-color: var(--primary-color);
+            background: #f9f9f9;
+        }
+        .shoe-item.selected {
+            border-color: #2196f3;
+            background: #e3f2fd;
+        }
+        .shoe-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .shoe-thumb {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        .shoe-info h3 {
+            margin: 0;
+            font-size: 1rem;
+        }
+        .shoe-info p {
+            margin: 0.25rem 0 0 0;
+            font-size: 0.875rem;
+            color: #666;
+        }
+        .shoe-images-count {
+            font-size: 0.75rem;
+            color: #999;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-shoe-prints"></i>
+                <span>Sneaker Collection</span>
+            </div>
+            <nav class="nav">
+                <a href="index.html" class="nav-link">Shop</a>
+                <a href="admin.html" class="nav-link">Admin</a>
+                <a href="import.html" class="nav-link">Import</a>
+                <a href="images.html" class="nav-link">Images</a>
+                <a href="manage-images.html" class="nav-link active">Manage</a>
+                <a href="cart.html" class="nav-link cart-link">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <h1 class="page-title">Manage Images & Shoes</h1>
+            <p class="page-subtitle">Select multiple images to create one shoe, or add images to existing shoes</p>
+
+            <div class="manage-container">
+                <!-- Left: Available Images -->
+                <div class="section">
+                    <h2><i class="fas fa-images"></i> Available Images</h2>
+                    <div id="imagesGrid" class="images-grid"></div>
+                    
+                    <div class="action-panel" id="actionPanel" style="display: none;">
+                        <div class="selected-count" id="selectedCount">0 images selected</div>
+                        <div class="action-buttons">
+                            <button class="btn btn-primary btn-action" id="createShoeBtn">
+                                <i class="fas fa-plus-circle"></i> Create New Shoe
+                            </button>
+                            <button class="btn btn-action" id="addToShoeBtn" style="background: #2196f3; color: white;">
+                                <i class="fas fa-link"></i> Add to Existing Shoe
+                            </button>
+                            <button class="btn btn-action" id="clearSelectionBtn">
+                                <i class="fas fa-times"></i> Clear Selection
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Existing Shoes -->
+                <div class="section">
+                    <h2><i class="fas fa-shoe-prints"></i> Existing Shoes</h2>
+                    <div id="shoesList" class="shoes-list"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Sneaker Collection. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="manage-images.js"></script>
+</body>
+</html>
+
