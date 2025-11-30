@@ -12,6 +12,9 @@ const { convertHeicToJpg, isHeicFile } = require('./image-converter');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Ensure we're using the correct base directory for file paths
+const BASE_DIR = __dirname;
+
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());

@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "init-db": "node init-db.js"
+    "init-db": "node init-db.js",
+    "vercel-build": "echo 'Build complete'"
   },
   "keywords": ["shoe", "store", "ecommerce"],
   "author": "",
