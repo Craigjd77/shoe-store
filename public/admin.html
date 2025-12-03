@@ -66,8 +66,15 @@
 
     <main class="main">
         <div class="container">
-            <h1 class="page-title">Admin Panel</h1>
-            <p class="page-subtitle">Add and manage your sneaker collection</p>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <div>
+                    <h1 class="page-title" style="margin: 0;">Admin Panel</h1>
+                    <p class="page-subtitle" style="margin: 0.5rem 0 0 0;">Add and manage your sneaker collection</p>
+                </div>
+                <button id="syncToGitHubBtn" class="btn" style="background: #2196f3; color: white; padding: 0.75rem 1.5rem; font-size: 1rem;">
+                    <i class="fab fa-github"></i> Sync to GitHub
+                </button>
+            </div>
 
             <div class="admin-tabs">
                 <button class="tab-btn active" data-tab="images">Manage Images</button>

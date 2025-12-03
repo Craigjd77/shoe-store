@@ -1099,6 +1099,29 @@ app.post('/api/shoes/import', (req, res) => {
   });
 });
 
+// Sync to GitHub endpoint
+app.post('/api/sync-to-github', (req, res) => {
+  const { exec } = require('child_process');
+  const syncScript = path.join(__dirname, 'sync-to-github.js');
+  
+  exec(`node "${syncScript}"`, { cwd: __dirname }, (error, stdout, stderr) => {
+    if (error) {
+      console.error('Sync error:', error);
+      return res.status(500).json({ 
+        success: false, 
+        error: error.message,
+        output: stdout + stderr
+      });
+    }
+    
+    res.json({ 
+      success: true, 
+      message: 'Successfully synced to GitHub Pages',
+      output: stdout
+    });
+  });
+});
+
 // Auto-Import API endpoints
 app.get('/api/auto-import/status', (req, res) => {
   res.json({ enabled: CONFIG.AUTO_IMPORT_ENABLED, config: CONFIG });

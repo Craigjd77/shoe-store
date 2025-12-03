@@ -51,6 +51,12 @@ document.addEventListener('DOMContentLoaded', () => {
     loadManageShoes();
     loadImagesForManagement();
     updateCartCount();
+    
+    // Setup sync to GitHub button
+    const syncBtn = document.getElementById('syncToGitHubBtn');
+    if (syncBtn) {
+        syncBtn.addEventListener('click', syncToGitHub);
+    }
 });
 
 // Setup tabs
@@ -985,6 +991,44 @@ async function updateCartCount() {
         cartCount.textContent = count;
     } catch (error) {
         console.error('Error updating cart count:', error);
+    }
+}
+
+// Sync to GitHub
+async function syncToGitHub() {
+    const syncBtn = document.getElementById('syncToGitHubBtn');
+    const originalText = syncBtn.innerHTML;
+    
+    // Disable button and show loading
+    syncBtn.disabled = true;
+    syncBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
+    
+    try {
+        const response = await fetch(`${API_BASE}/sync-to-github`, {
+            method: 'POST'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('✅ Successfully synced to GitHub Pages!\n\nYour site will update in 1-2 minutes at:\nhttps://craigjd77.github.io/shoe-store/');
+            syncBtn.innerHTML = '<i class="fas fa-check"></i> Synced!';
+            syncBtn.style.background = '#4caf50';
+            
+            // Reset after 3 seconds
+            setTimeout(() => {
+                syncBtn.innerHTML = originalText;
+                syncBtn.style.background = '#2196f3';
+                syncBtn.disabled = false;
+            }, 3000);
+        } else {
+            throw new Error(result.error || 'Sync failed');
+        }
+    } catch (error) {
+        console.error('Sync error:', error);
+        alert('❌ Error syncing to GitHub:\n\n' + error.message + '\n\nYou can manually sync by running:\nnpm run sync');
+        syncBtn.innerHTML = originalText;
+        syncBtn.disabled = false;
     }
 }
 
