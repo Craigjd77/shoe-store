@@ -252,6 +252,14 @@ window.changeDetailImage = function(direction) {
     showShoeDetail();
 }
 
+window.setDetailImage = function(index) {
+    if (!currentDetailShoe || !currentDetailShoe.images) return;
+    if (index < 0 || index >= currentDetailShoe.images.length) return;
+    
+    currentDetailIndex = index;
+    showShoeDetail();
+}
+
 function showShoeDetail() {
     if (!currentDetailShoe) return;
     
@@ -313,7 +321,7 @@ function showShoeDetail() {
             }
             return `
                 <div class="detail-thumbnail ${idx === currentDetailIndex ? 'active' : ''}" 
-                     onclick="changeDetailImage(${idx - currentDetailIndex})">
+                     onclick="setDetailImage(${idx})">
                     <img src="${thumbUrl}" alt="Thumbnail ${idx + 1}">
                 </div>
             `;
