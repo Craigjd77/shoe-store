@@ -251,17 +251,17 @@ body {
 }
 
 .shoe-brand {
-    font-size: 0.875rem;
+    font-size: 0.8rem;
     color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.15rem;
 }
 
 .shoe-model {
-    font-size: 1.125rem;
+    font-size: 1rem;
     font-weight: 600;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.35rem;
     color: var(--text-primary);
 }
 
@@ -269,7 +269,7 @@ body {
     display: flex;
     align-items: baseline;
     gap: 0.5rem;
-    margin-top: 0.5rem;
+    margin-top: 0.25rem;
 }
 
 .price-current {
