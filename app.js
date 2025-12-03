@@ -126,21 +126,29 @@ function displayShoes() {
         const imageCount = (shoe.images && shoe.images.length) || 0;
         const hasMultipleImages = imageCount > 1;
         
-        // Show thumbnail previews if multiple images
-        let thumbnailPreviews = '';
+        // Build image carousel if multiple images
+        let imageCarousel = '';
         if (hasMultipleImages && shoe.images.length > 1) {
-            const thumbnails = shoe.images.slice(0, 3).map((img, idx) => {
-                let thumbUrl;
+            const allImages = shoe.images.map((img, idx) => {
+                let imgUrl;
                 if (API_BASE) {
-                    thumbUrl = img.startsWith('http') ? img : `/uploads/${img}`;
+                    imgUrl = img.startsWith('http') ? img : `/uploads/${img}`;
                 } else {
-                    thumbUrl = img.startsWith('http') ? img : `images/${img}`;
+                    imgUrl = img.startsWith('http') ? img : `images/${img}`;
                 }
-                return `<img src="${thumbUrl}" class="thumbnail-preview" style="width: 30px; height: 30px; object-fit: cover; border-radius: 4px; border: 2px solid white; margin-right: 2px;">`;
+                return `<img src="${imgUrl}" class="carousel-image" data-index="${idx}" style="display: ${idx === 0 ? 'block' : 'none'}; width: 100%; height: 100%; object-fit: cover;">`;
             }).join('');
-            if (shoe.images.length > 3) {
-                thumbnailPreviews += `<div class="thumbnail-more">+${shoe.images.length - 3}</div>`;
-            }
+            
+            imageCarousel = `
+                <div class="image-carousel" data-shoe-id="${shoe.id}">
+                    ${allImages}
+                    <div class="carousel-dots">
+                        ${shoe.images.map((_, idx) => `<span class="carousel-dot ${idx === 0 ? 'active' : ''}" data-index="${idx}"></span>`).join('')}
+                    </div>
+                    <div class="carousel-nav carousel-prev" onclick="event.stopPropagation(); changeCarouselImage(${shoe.id}, -1)">‹</div>
+                    <div class="carousel-nav carousel-next" onclick="event.stopPropagation(); changeCarouselImage(${shoe.id}, 1)">›</div>
+                </div>
+            `;
         }
         
         return `
@@ -150,15 +158,14 @@ function displayShoes() {
                         title="${isSelected ? 'Remove from selection' : 'Add to selection'}">
                     ${isSelected ? '❤️' : '🤍'}
                 </button>
-                <div class="shoe-image-container" style="position: relative;">
-                    <img src="${imageUrl}" alt="${shoe.brand} ${shoe.model}" class="shoe-image" 
-                         onerror="this.src='https://via.placeholder.com/400?text=No+Image'">
+                <div class="shoe-image-container" style="position: relative; overflow: hidden;">
+                    ${hasMultipleImages ? imageCarousel : `
+                        <img src="${imageUrl}" alt="${shoe.brand} ${shoe.model}" class="shoe-image" 
+                             onerror="this.src='https://via.placeholder.com/400?text=No+Image'">
+                    `}
                     ${hasMultipleImages ? `
                         <div class="image-count-badge" style="cursor: pointer;" title="Click to view all ${imageCount} photos">
-                            📷 ${imageCount} photos
-                        </div>
-                        <div class="thumbnail-strip" style="position: absolute; bottom: 35px; left: 10px; right: 10px; display: flex; gap: 3px; background: rgba(0,0,0,0.6); padding: 5px; border-radius: 4px;">
-                            ${thumbnailPreviews}
+                            📷 ${imageCount} photos • Click to view all
                         </div>
                     ` : ''}
                 </div>
@@ -261,6 +268,70 @@ function showGalleryImage() {
     document.getElementById('galleryCounter').innerHTML = 
         `<span class="gallery-counter">${currentGalleryIndex + 1} of ${currentGalleryShoe.images.length}</span>`;
 }
+
+// Carousel functionality
+const carouselStates = new Map(); // Track current image index for each shoe
+
+function changeCarouselImage(shoeId, direction) {
+    const shoe = allShoes.find(s => s.id === shoeId);
+    if (!shoe || !shoe.images || shoe.images.length <= 1) return;
+    
+    const carousel = document.querySelector(`.image-carousel[data-shoe-id="${shoeId}"]`);
+    if (!carousel) return;
+    
+    const currentIndex = carouselStates.get(shoeId) || 0;
+    let newIndex = currentIndex + direction;
+    
+    if (newIndex < 0) newIndex = shoe.images.length - 1;
+    if (newIndex >= shoe.images.length) newIndex = 0;
+    
+    carouselStates.set(shoeId, newIndex);
+    
+    // Hide all images
+    carousel.querySelectorAll('.carousel-image').forEach((img, idx) => {
+        img.style.display = idx === newIndex ? 'block' : 'none';
+    });
+    
+    // Update dots
+    carousel.querySelectorAll('.carousel-dot').forEach((dot, idx) => {
+        dot.classList.toggle('active', idx === newIndex);
+    });
+}
+
+// Auto-rotate carousels on hover
+document.addEventListener('DOMContentLoaded', () => {
+    let carouselIntervals = new Map();
+    
+    function setupCarouselAutoRotate() {
+        document.querySelectorAll('.image-carousel').forEach(carousel => {
+            const shoeId = parseInt(carousel.dataset.shoeId);
+            const shoe = allShoes.find(s => s.id === shoeId);
+            if (!shoe || !shoe.images || shoe.images.length <= 1) return;
+            
+            carousel.addEventListener('mouseenter', () => {
+                if (carouselIntervals.has(shoeId)) return;
+                const interval = setInterval(() => {
+                    changeCarouselImage(shoeId, 1);
+                }, 3000); // Change every 3 seconds
+                carouselIntervals.set(shoeId, interval);
+            });
+            
+            carousel.addEventListener('mouseleave', () => {
+                if (carouselIntervals.has(shoeId)) {
+                    clearInterval(carouselIntervals.get(shoeId));
+                    carouselIntervals.delete(shoeId);
+                }
+            });
+        });
+    }
+    
+    // Setup after shoes are displayed
+    const originalDisplayShoes = displayShoes;
+    displayShoes = function() {
+        originalDisplayShoes();
+        setTimeout(setupCarouselAutoRotate, 100);
+    };
+});
 
 // Keyboard navigation for gallery
 document.addEventListener('keydown', (e) => {
