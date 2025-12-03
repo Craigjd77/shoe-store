@@ -43,11 +43,26 @@ async function loadShoes() {
             }
         } else {
             // Load from JSON file (GitHub Pages)
-            const response = await fetch('data/shoes.json');
-            if (!response.ok) {
-                throw new Error('JSON file not found');
+            try {
+                const response = await fetch('data/shoes.json');
+                if (!response.ok) {
+                    throw new Error(`Failed to load: ${response.status} ${response.statusText}`);
+                }
+                allShoes = await response.json();
+            } catch (fetchError) {
+                console.error('Error loading shoes.json:', fetchError);
+                // Try alternative path
+                try {
+                    const altResponse = await fetch('/shoe-store/data/shoes.json');
+                    if (altResponse.ok) {
+                        allShoes = await altResponse.json();
+                    } else {
+                        throw fetchError;
+                    }
+                } catch (altError) {
+                    throw new Error('Could not load shoes data. Please check if data/shoes.json exists.');
+                }
             }
-            allShoes = await response.json();
         }
         
         // Process images array
@@ -65,7 +80,16 @@ async function loadShoes() {
         shoesGrid.style.display = 'grid';
     } catch (error) {
         console.error('Error loading shoes:', error);
-        loading.innerHTML = '<p>Error loading shoes. Please try again later.</p>';
+        loading.innerHTML = `
+            <div style="text-align: center; padding: 2rem;">
+                <p style="color: #e74c3c; font-size: 18px; margin-bottom: 1rem;">❌ Error loading shoes</p>
+                <p style="color: #666; margin-bottom: 0.5rem;">${error.message}</p>
+                <p style="color: #999; font-size: 14px;">Please check the browser console for details.</p>
+                <button onclick="location.reload()" style="margin-top: 1rem; padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                    Retry
+                </button>
+            </div>
+        `;
     }
 }
 
@@ -119,31 +143,65 @@ function displayShoes() {
             imageUrl = image.startsWith('http') ? image : `/uploads/${image}`;
         } else {
             // GitHub Pages - use relative path
-            imageUrl = image.startsWith('http') ? image : `SHOES/${image}`;
+            imageUrl = image.startsWith('http') ? image : `images/${image}`;
         }
         
         const isSelected = selectedShoes.has(shoe.id);
+        const imageCount = (shoe.images && shoe.images.length) || 0;
+        const hasMultipleImages = imageCount > 1;
+        
+        // Build image carousel if multiple images
+        let imageCarousel = '';
+        if (hasMultipleImages && shoe.images.length > 1) {
+            const allImages = shoe.images.map((img, idx) => {
+                let imgUrl;
+                if (API_BASE) {
+                    imgUrl = img.startsWith('http') ? img : `/uploads/${img}`;
+                } else {
+                    imgUrl = img.startsWith('http') ? img : `images/${img}`;
+                }
+                return `<img src="${imgUrl}" class="carousel-image" data-index="${idx}" style="display: ${idx === 0 ? 'block' : 'none'}; width: 100%; height: 100%; object-fit: cover;">`;
+            }).join('');
+            
+            imageCarousel = `
+                <div class="image-carousel" data-shoe-id="${shoe.id}">
+                    ${allImages}
+                    <div class="carousel-dots">
+                        ${shoe.images.map((_, idx) => `<span class="carousel-dot ${idx === 0 ? 'active' : ''}" data-index="${idx}"></span>`).join('')}
+                    </div>
+                    <div class="carousel-nav carousel-prev" onclick="event.stopPropagation(); changeCarouselImage(${shoe.id}, -1)">‹</div>
+                    <div class="carousel-nav carousel-next" onclick="event.stopPropagation(); changeCarouselImage(${shoe.id}, 1)">›</div>
+                </div>
+            `;
+        }
         
         return `
-            <div class="shoe-card">
-                <input type="checkbox" class="shoe-checkbox" 
-                       data-shoe-id="${shoe.id}"
-                       ${isSelected ? 'checked' : ''}
-                       onchange="toggleSelection(${shoe.id}, this.checked)">
-                <div class="shoe-image-container">
-                    <img src="${imageUrl}" alt="${shoe.brand} ${shoe.model}" class="shoe-image" 
-                         onerror="this.src='https://via.placeholder.com/400?text=No+Image'">
+            <div class="shoe-card ${isSelected ? 'selected' : ''}" onclick="openShoeDetail(${shoe.id})">
+                <button class="heart-btn ${isSelected ? 'selected' : ''}" 
+                        onclick="event.stopPropagation(); toggleSelection(${shoe.id}, ${!isSelected})"
+                        title="${isSelected ? 'Remove from selection' : 'Add to selection'}">
+                    ${isSelected ? '❤️' : '🤍'}
+                </button>
+                <div class="shoe-image-container" style="position: relative; overflow: hidden;">
+                    ${hasMultipleImages ? imageCarousel : `
+                        <img src="${imageUrl}" alt="${shoe.brand} ${shoe.model}" class="shoe-image" 
+                             onerror="this.src='https://via.placeholder.com/400?text=No+Image'">
+                    `}
+                    ${hasMultipleImages ? `
+                        <div class="image-count-badge" style="cursor: pointer;" title="Click to view all ${imageCount} photos">
+                            📷 ${imageCount} photos • Click to view all
+                        </div>
+                    ` : ''}
                 </div>
                 <div class="shoe-info">
                     <div class="shoe-brand">${shoe.brand}</div>
                     <div class="shoe-model">${shoe.model}</div>
-                    ${shoe.description ? `<div class="shoe-description" style="font-size: 12px; color: #666; margin: 5px 0;">${shoe.description}</div>` : ''}
-                    <div class="shoe-price">
+                    <div class="shoe-price" style="margin: 0.4rem 0;">
                         <span class="price-current">$${shoe.price.toFixed(2)}</span>
                         ${shoe.msrp && shoe.msrp > shoe.price ? `<span class="price-msrp">$${shoe.msrp.toFixed(2)}</span>` : ''}
                     </div>
-                    <div style="font-size: 12px; color: #666; margin-top: 5px;">
-                        Condition: ${shoe.condition || 'New'}
+                    <div style="font-size: 11px; color: #666; margin-top: 0.25rem;">
+                        ${shoe.condition ? `✨ ${shoe.condition}` : '✨ New'}
                     </div>
                 </div>
             </div>
@@ -164,7 +222,8 @@ function toggleSelection(shoeId, isSelected) {
 // Update selection bar
 function updateSelectionBar() {
     const count = selectedShoes.size;
-    selectionCount.textContent = `${count} selected`;
+    const emoji = count > 0 ? '❤️' : '🤍';
+    selectionCount.innerHTML = `<span class="emoji">${emoji}</span>${count} selected`;
     
     if (count > 0) {
         selectionBar.classList.add('active');
@@ -175,16 +234,280 @@ function updateSelectionBar() {
 
 // Clear selection
 function clearSelection() {
+    if (selectedShoes.size === 0) return;
+    if (!confirm('Clear all selections?')) return;
+    
     selectedShoes.clear();
-    document.querySelectorAll('.shoe-checkbox').forEach(cb => cb.checked = false);
     updateSelectionBar();
     displayShoes();
 }
 
+// Detailed Shoe View functionality
+let currentDetailShoe = null;
+let currentDetailIndex = 0;
+
+window.openShoeDetail = function(shoeId) {
+    const shoe = allShoes.find(s => s.id === shoeId);
+    if (!shoe) return;
+    
+    currentDetailShoe = shoe;
+    currentDetailIndex = 0;
+    showShoeDetail();
+    document.getElementById('shoeDetailModal').classList.add('active');
+    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+}
+
+window.closeShoeDetail = function() {
+    document.getElementById('shoeDetailModal').classList.remove('active');
+    document.body.style.overflow = ''; // Restore scrolling
+    currentDetailShoe = null;
+}
+
+window.changeDetailImage = function(direction) {
+    if (!currentDetailShoe || !currentDetailShoe.images || currentDetailShoe.images.length === 0) return;
+    
+    currentDetailIndex += direction;
+    if (currentDetailIndex < 0) {
+        currentDetailIndex = currentDetailShoe.images.length - 1;
+    } else if (currentDetailIndex >= currentDetailShoe.images.length) {
+        currentDetailIndex = 0;
+    }
+    showShoeDetail();
+}
+
+window.setDetailImage = function(index) {
+    if (!currentDetailShoe || !currentDetailShoe.images) return;
+    if (index < 0 || index >= currentDetailShoe.images.length) return;
+    
+    currentDetailIndex = index;
+    showShoeDetail();
+}
+
+function showShoeDetail() {
+    if (!currentDetailShoe) return;
+    
+    const shoe = currentDetailShoe;
+    
+    // Set main image
+    const image = shoe.images && shoe.images.length > 0 ? shoe.images[currentDetailIndex] : '';
+    let imageUrl = '';
+    if (image) {
+        if (API_BASE) {
+            imageUrl = image.startsWith('http') ? image : `/uploads/${image}`;
+        } else {
+            imageUrl = image.startsWith('http') ? image : `images/${image}`;
+        }
+    }
+    
+    document.getElementById('detailMainImage').src = imageUrl;
+    
+    // Set details
+    document.getElementById('detailBrand').textContent = shoe.brand || 'Unknown Brand';
+    document.getElementById('detailModel').textContent = shoe.model || 'Unknown Model';
+    
+    // Price
+    const priceEl = document.getElementById('detailPrice');
+    priceEl.textContent = `$${shoe.price.toFixed(2)}`;
+    const msrpEl = document.getElementById('detailMsrp');
+    if (shoe.msrp && shoe.msrp > shoe.price) {
+        msrpEl.textContent = `$${shoe.msrp.toFixed(2)}`;
+        msrpEl.style.display = 'inline';
+    } else {
+        msrpEl.style.display = 'none';
+    }
+    
+    // Description
+    const descEl = document.getElementById('detailDescription');
+    if (shoe.description) {
+        descEl.textContent = shoe.description;
+        descEl.style.display = 'block';
+    } else {
+        descEl.style.display = 'none';
+    }
+    
+    // Specs
+    document.getElementById('detailSize').textContent = shoe.size || '9';
+    document.getElementById('detailCondition').textContent = shoe.condition || 'New';
+    document.getElementById('detailGender').textContent = shoe.gender || 'Mens';
+    const photoCount = (shoe.images && shoe.images.length) || 0;
+    document.getElementById('detailPhotoCount').textContent = `${photoCount} photo${photoCount !== 1 ? 's' : ''}`;
+    
+    // Thumbnails
+    const thumbnailsEl = document.getElementById('detailThumbnails');
+    if (shoe.images && shoe.images.length > 1) {
+        thumbnailsEl.innerHTML = shoe.images.map((img, idx) => {
+            let thumbUrl;
+            if (API_BASE) {
+                thumbUrl = img.startsWith('http') ? img : `/uploads/${img}`;
+            } else {
+                thumbUrl = img.startsWith('http') ? img : `images/${img}`;
+            }
+            return `
+                <div class="detail-thumbnail ${idx === currentDetailIndex ? 'active' : ''}" 
+                     onclick="setDetailImage(${idx})">
+                    <img src="${thumbUrl}" alt="Thumbnail ${idx + 1}">
+                </div>
+            `;
+        }).join('');
+    } else {
+        thumbnailsEl.innerHTML = '';
+    }
+    
+    // Heart button
+    const isSelected = selectedShoes.has(shoe.id);
+    const heartBtn = document.getElementById('detailHeartBtn');
+    const heartIcon = document.getElementById('detailHeartIcon');
+    const heartText = document.getElementById('detailHeartText');
+    
+    if (isSelected) {
+        heartBtn.classList.add('selected');
+        heartIcon.textContent = '❤️';
+        heartText.textContent = 'Remove from Picks';
+    } else {
+        heartBtn.classList.remove('selected');
+        heartIcon.textContent = '🤍';
+        heartText.textContent = 'Add to Picks';
+    }
+}
+
+window.toggleDetailSelection = function() {
+    if (!currentDetailShoe) return;
+    
+    const shoeId = currentDetailShoe.id;
+    const isSelected = selectedShoes.has(shoeId);
+    
+    if (isSelected) {
+        selectedShoes.delete(shoeId);
+    } else {
+        selectedShoes.add(shoeId);
+    }
+    
+    updateSelectionBar();
+    showShoeDetail(); // Refresh the detail view
+    displayShoes(); // Update the grid
+}
+
+window.zoomImage = function() {
+    if (!currentDetailShoe || !currentDetailShoe.images) return;
+    
+    const image = currentDetailShoe.images[currentDetailIndex];
+    let imageUrl;
+    if (API_BASE) {
+        imageUrl = image.startsWith('http') ? image : `/uploads/${image}`;
+    } else {
+        imageUrl = image.startsWith('http') ? image : `images/${image}`;
+    }
+    
+    document.getElementById('zoomedImage').src = imageUrl;
+    document.getElementById('zoomModal').classList.add('active');
+}
+
+window.closeZoom = function() {
+    document.getElementById('zoomModal').classList.remove('active');
+}
+
+// Carousel functionality
+const carouselStates = new Map(); // Track current image index for each shoe
+
+window.changeCarouselImage = function(shoeId, direction) {
+    const shoe = allShoes.find(s => s.id === shoeId);
+    if (!shoe || !shoe.images || shoe.images.length <= 1) return;
+    
+    const carousel = document.querySelector(`.image-carousel[data-shoe-id="${shoeId}"]`);
+    if (!carousel) {
+        console.log('Carousel not found for shoe', shoeId);
+        return;
+    }
+    
+    const currentIndex = carouselStates.get(shoeId) || 0;
+    let newIndex = currentIndex + direction;
+    
+    if (newIndex < 0) newIndex = shoe.images.length - 1;
+    if (newIndex >= shoe.images.length) newIndex = 0;
+    
+    carouselStates.set(shoeId, newIndex);
+    
+    // Hide all images, show the new one
+    const images = carousel.querySelectorAll('.carousel-image');
+    images.forEach((img, idx) => {
+        if (idx === newIndex) {
+            img.style.display = 'block';
+            img.style.opacity = '1';
+        } else {
+            img.style.display = 'none';
+            img.style.opacity = '0';
+        }
+    });
+    
+    // Update dots
+    const dots = carousel.querySelectorAll('.carousel-dot');
+    dots.forEach((dot, idx) => {
+        if (idx === newIndex) {
+            dot.classList.add('active');
+        } else {
+            dot.classList.remove('active');
+        }
+    });
+}
+
+// Auto-rotate carousels on hover
+let carouselIntervals = new Map();
+
+function setupCarouselAutoRotate() {
+    document.querySelectorAll('.image-carousel').forEach(carousel => {
+        const shoeId = parseInt(carousel.dataset.shoeId);
+        const shoe = allShoes.find(s => s.id === shoeId);
+        if (!shoe || !shoe.images || shoe.images.length <= 1) return;
+        
+        // Remove old listeners if any
+        const newCarousel = carousel.cloneNode(true);
+        carousel.parentNode.replaceChild(newCarousel, carousel);
+        
+        newCarousel.addEventListener('mouseenter', () => {
+            if (carouselIntervals.has(shoeId)) return;
+            const interval = setInterval(() => {
+                window.changeCarouselImage(shoeId, 1);
+            }, 3000); // Change every 3 seconds
+            carouselIntervals.set(shoeId, interval);
+        });
+        
+        newCarousel.addEventListener('mouseleave', () => {
+            if (carouselIntervals.has(shoeId)) {
+                clearInterval(carouselIntervals.get(shoeId));
+                carouselIntervals.delete(shoeId);
+            }
+        });
+    });
+}
+
+// Override displayShoes to setup carousel after rendering
+const originalDisplayShoes = displayShoes;
+displayShoes = function() {
+    originalDisplayShoes();
+    setTimeout(setupCarouselAutoRotate, 100);
+};
+
+// Keyboard navigation for detail modal
+document.addEventListener('keydown', (e) => {
+    const detailModal = document.getElementById('shoeDetailModal');
+    const zoomModal = document.getElementById('zoomModal');
+    
+    if (zoomModal.classList.contains('active')) {
+        if (e.key === 'Escape') closeZoom();
+        return;
+    }
+    
+    if (detailModal.classList.contains('active')) {
+        if (e.key === 'Escape') closeShoeDetail();
+        if (e.key === 'ArrowLeft') changeDetailImage(-1);
+        if (e.key === 'ArrowRight') changeDetailImage(1);
+    }
+});
+
 // Show summary
 function showSummary() {
     if (selectedShoes.size === 0) {
-        alert('Please select at least one shoe');
+        alert('👟 Please select at least one shoe you like!');
         return;
     }
     
@@ -192,19 +515,28 @@ function showSummary() {
     const totalValue = selected.reduce((sum, shoe) => sum + parseFloat(shoe.price), 0);
     
     let summaryHTML = `
-        <p><strong>Total Selected: ${selected.length} shoes</strong></p>
-        <p><strong>Total Value: $${totalValue.toFixed(2)}</strong></p>
+        <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            <p style="font-size: 18px; margin: 5px 0;"><strong>👟 Total Selected: ${selected.length} shoe${selected.length !== 1 ? 's' : ''}</strong></p>
+            <p style="font-size: 18px; margin: 5px 0;"><strong>💰 Total Value: $${totalValue.toFixed(2)}</strong></p>
+        </div>
         <hr style="margin: 20px 0;">
     `;
     
-    selected.forEach(shoe => {
+    selected.forEach((shoe, index) => {
         summaryHTML += `
             <div class="summary-item">
-                <strong>${shoe.brand} ${shoe.model}</strong><br>
-                Price: $${shoe.price.toFixed(2)}${shoe.msrp && shoe.msrp > shoe.price ? ` (MSRP: $${shoe.msrp.toFixed(2)})` : ''}<br>
-                ${shoe.description ? `Description: ${shoe.description}<br>` : ''}
-                Condition: ${shoe.condition || 'New'}<br>
-                ${shoe.images && shoe.images.length > 0 ? `Images: ${shoe.images.length} photo(s)` : ''}
+                <div style="display: flex; align-items: start; gap: 15px;">
+                    <div style="font-size: 24px;">${index + 1}.</div>
+                    <div style="flex: 1;">
+                        <strong style="font-size: 16px;">${shoe.brand} ${shoe.model}</strong><br>
+                        <span style="color: #4CAF50; font-weight: bold; font-size: 18px;">$${shoe.price.toFixed(2)}</span>
+                        ${shoe.msrp && shoe.msrp > shoe.price ? ` <span style="text-decoration: line-through; color: #999;">$${shoe.msrp.toFixed(2)}</span>` : ''}<br>
+                        ${shoe.description ? `<div style="margin: 5px 0; color: #666;">${shoe.description}</div>` : ''}
+                        <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                            ✨ ${shoe.condition || 'New'} • ${shoe.images && shoe.images.length > 0 ? `📷 ${shoe.images.length} photo${shoe.images.length !== 1 ? 's' : ''}` : 'No photos'}
+                        </div>
+                    </div>
+                </div>
             </div>
         `;
     });
@@ -218,26 +550,26 @@ function showSummary() {
 
 // Generate summary text
 function generateSummaryText(selected, totalValue) {
-    let text = `SHOE SELECTION SUMMARY\n`;
-    text += `====================\n\n`;
-    text += `Total Selected: ${selected.length} shoes\n`;
+    let text = `👟 SHOE SELECTION SUMMARY 👟\n`;
+    text += `==========================\n\n`;
+    text += `Total Selected: ${selected.length} shoe${selected.length !== 1 ? 's' : ''}\n`;
     text += `Total Value: $${totalValue.toFixed(2)}\n\n`;
     text += `SELECTED SHOES:\n`;
     text += `---------------\n\n`;
     
     selected.forEach((shoe, index) => {
         text += `${index + 1}. ${shoe.brand} ${shoe.model}\n`;
-        text += `   Price: $${shoe.price.toFixed(2)}`;
+        text += `   💰 Price: $${shoe.price.toFixed(2)}`;
         if (shoe.msrp && shoe.msrp > shoe.price) {
             text += ` (MSRP: $${shoe.msrp.toFixed(2)})`;
         }
         text += `\n`;
         if (shoe.description) {
-            text += `   Description: ${shoe.description}\n`;
+            text += `   📝 ${shoe.description}\n`;
         }
-        text += `   Condition: ${shoe.condition || 'New'}\n`;
+        text += `   ✨ Condition: ${shoe.condition || 'New'}\n`;
         if (shoe.images && shoe.images.length > 0) {
-            text += `   Images: ${shoe.images.length} photo(s)\n`;
+            text += `   📷 ${shoe.images.length} photo${shoe.images.length !== 1 ? 's' : ''}\n`;
         }
         text += `\n`;
     });
