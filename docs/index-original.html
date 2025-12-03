@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sneaker Collection - Size 9 Mens</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-shoe-prints"></i>
+                <span>Sneaker Collection</span>
+            </div>
+            <nav class="nav">
+                <a href="index.html" class="nav-link active">Shop</a>
+                <a href="login.html" class="nav-link">Admin</a>
+                <a href="cart.html" class="nav-link cart-link">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <div class="hero-section">
+                <h1>Premium Sneaker Collection</h1>
+                <p class="subtitle">200+ Pairs • All Size 9 Mens • Authentic • Ready to Ship</p>
+            </div>
+
+            <div class="filters-section">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search by brand, model, or description...">
+                </div>
+                <div class="filter-group">
+                    <label>Filter by Brand:</label>
+                    <select id="brandFilter">
+                        <option value="">All Brands</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Sort by:</label>
+                    <select id="sortSelect">
+                        <option value="created_at DESC">Newest First</option>
+                        <option value="created_at ASC">Oldest First</option>
+                        <option value="price ASC">Price: Low to High</option>
+                        <option value="price DESC">Price: High to Low</option>
+                        <option value="brand ASC">Brand: A to Z</option>
+                        <option value="brand DESC">Brand: Z to A</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="loading" class="loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading sneakers...</p>
+            </div>
+
+            <div id="shoesGrid" class="shoes-grid"></div>
+
+            <div id="noResults" class="no-results" style="display: none;">
+                <i class="fas fa-search"></i>
+                <h3>No sneakers found</h3>
+                <p>Try adjusting your search or filters</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Sneaker Collection. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
+

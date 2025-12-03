@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Sneaker Collection</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+    </style>
+    <script>
+        // Check authentication before page loads
+        if (localStorage.getItem('adminAuthenticated') !== 'true') {
+            window.location.href = 'login.html';
+        }
+    </script>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-shoe-prints"></i>
+                <span>Sneaker Collection</span>
+            </div>
+            <nav class="nav">
+                <a href="index.html" class="nav-link">Shop</a>
+                <a href="admin.html" class="nav-link active">Admin</a>
+                <a href="#" class="nav-link" onclick="logout(); return false;" style="color: #f44336;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+                <a href="cart.html" class="nav-link cart-link">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <h1 class="page-title">Admin Panel</h1>
+            <p class="page-subtitle">Add and manage your sneaker collection</p>
+
+            <div class="admin-tabs">
+                <button class="tab-btn active" data-tab="images">Manage Images</button>
+                <button class="tab-btn" data-tab="add">Add New Shoe</button>
+                <button class="tab-btn" data-tab="manage">Manage Shoes</button>
+            </div>
+            
+            <div style="background: #e8f5e9; border-left: 4px solid #4caf50; padding: 1rem; margin: 1rem 0; border-radius: 4px;">
+                <strong><i class="fas fa-magic"></i> Auto-Publish is ON:</strong> 
+                Drop images in the <code>SHOES</code> folder and they'll be automatically identified and published within 10 seconds!
+            </div>
+
+            <!-- Manage Images Tab -->
+            <div id="imagesTab" class="tab-content active">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1rem;">
+                    <!-- Left: Available Images -->
+                    <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: var(--shadow);">
+                        <h2 style="margin-top: 0;"><i class="fas fa-images"></i> Available Images</h2>
+                        <p style="color: #666; font-size: 0.9rem;">Drag images to shoes, or click to select multiple</p>
+                        <div id="imagesGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 1rem; max-height: 500px; overflow-y: auto; margin-top: 1rem;"></div>
+                        
+                        <div id="imageActionPanel" style="display: none; background: #f5f5f5; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                            <div id="selectedCount" style="font-weight: 600; color: #4caf50; margin-bottom: 0.5rem;">0 images selected</div>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <button class="btn btn-primary" id="createShoeFromImagesBtn" style="flex: 1; min-width: 150px;">
+                                    <i class="fas fa-plus-circle"></i> Create Shoe
+                                </button>
+                                <button class="btn" id="addImagesToShoeBtn" style="flex: 1; min-width: 150px; background: #2196f3; color: white;">
+                                    <i class="fas fa-link"></i> Add to Shoe
+                                </button>
+                                <button class="btn" id="clearImageSelectionBtn" style="flex: 1; min-width: 100px;">
+                                    Clear
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Existing Shoes -->
+                    <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: var(--shadow);">
+                        <h2 style="margin-top: 0;"><i class="fas fa-shoe-prints"></i> Existing Shoes</h2>
+                        <p style="color: #666; font-size: 0.9rem;">Check boxes to select multiple, then delete. Drag images here to add them.</p>
+                        
+                        <div id="shoeSelectionPanel" style="display: none; background: #ffebee; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 2px solid #f44336;">
+                            <div id="selectedShoeCount" style="font-weight: 600; color: #c62828; margin-bottom: 0.5rem;">0 shoes selected</div>
+                            <button class="btn" onclick="deleteSelectedShoes()" style="background: #f44336; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                                <i class="fas fa-trash"></i> Delete Selected
+                            </button>
+                            <button class="btn" onclick="selectedShoesForDeletion.clear(); displayShoesForImages();" style="background: #666; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 4px; cursor: pointer; margin-left: 0.5rem;">
+                                Clear Selection
+                            </button>
+                        </div>
+                        
+                        <div id="shoesListForImages" style="max-height: 500px; overflow-y: auto;"></div>
+                        <div id="createNewShoeDropZone" style="border: 2px dashed #4caf50; border-radius: 8px; padding: 2rem; text-align: center; margin-top: 1rem; background: #f1f8f4; cursor: pointer; transition: all 0.2s;">
+                            <i class="fas fa-plus-circle" style="font-size: 2rem; color: #4caf50; margin-bottom: 0.5rem;"></i>
+                            <div style="font-weight: 600; color: #4caf50;">Drop images here to create new shoe</div>
+                            <div style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">Or drag to existing shoe above</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add New Shoe Tab -->
+            <div id="addTab" class="tab-content">
+                <div class="admin-form-container">
+                    <form id="addShoeForm" class="admin-form">
+                        <div class="form-group">
+                            <label for="brand">Brand *</label>
+                            <input type="text" id="brand" name="brand" required 
+                                   placeholder="e.g., Nike, New Balance, adidas">
+                        </div>
+                        <div class="form-group">
+                            <label for="model">Model *</label>
+                            <input type="text" id="model" name="model" required 
+                                   placeholder="e.g., Dunk Low, 990v5, Ultraboost">
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Description</label>
+                            <textarea id="description" name="description" rows="4" 
+                                      placeholder="Describe the shoe, colorway, special features, etc."></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="msrp">Original MSRP ($) *</label>
+                                <input type="number" id="msrp" name="msrp" step="0.01" required 
+                                       placeholder="120.00">
+                            </div>
+                            <div class="form-group">
+                                <label for="price">Selling Price ($) *</label>
+                                <input type="number" id="price" name="price" step="0.01" required 
+                                       placeholder="100.00">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="size">Size</label>
+                                <input type="text" id="size" name="size" value="9" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="gender">Gender</label>
+                                <select id="gender" name="gender">
+                                    <option value="Mens">Mens</option>
+                                    <option value="Womens">Womens</option>
+                                    <option value="Unisex">Unisex</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="condition">Condition</label>
+                                <select id="condition" name="condition">
+                                    <option value="Excellent">Excellent</option>
+                                    <option value="Very Good">Very Good</option>
+                                    <option value="Good">Good</option>
+                                    <option value="Fair">Fair</option>
+                                    <option value="New">New (if applicable)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Add Shoe
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Image Upload Section -->
+                <div id="imageUploadSection" class="image-upload-section" style="display: none;">
+                    <h3>Upload Images</h3>
+                    <p class="help-text">Select the shoe above, then upload multiple images. The first image will be set as primary.</p>
+                    <form id="imageUploadForm" class="upload-form">
+                        <input type="hidden" id="selectedShoeId">
+                        <div class="file-upload-area">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Drag and drop images here, or click to select</p>
+                            <p class="file-hint">Supports: JPG, PNG, GIF, WebP (Max 10MB each)</p>
+                            <input type="file" id="imageInput" multiple accept="image/*">
+                        </div>
+                        <div id="imagePreview" class="image-preview"></div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-upload"></i> Upload Images
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Manage Shoes Tab -->
+            <div id="manageTab" class="tab-content">
+                <div class="manage-controls">
+                    <input type="text" id="manageSearch" placeholder="Search shoes..." class="search-input">
+                </div>
+                <div id="shoesList" class="shoes-list"></div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Sneaker Collection. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="admin.js"></script>
+</body>
+</html>
+

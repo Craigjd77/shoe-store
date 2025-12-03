@@ -13,6 +13,8 @@ uploads/
 SHOES/
 *.heic
 *.HEIC
+# But allow docs/uploads for GitHub Pages
+!docs/uploads/
 
 # Processed files tracking
 .processed-images.json
