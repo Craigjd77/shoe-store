@@ -218,11 +218,11 @@ function displayShoes() {
                 <div class="shoe-info">
                     <div class="shoe-brand">${shoe.brand}</div>
                     <div class="shoe-model">${shoe.model}</div>
-                    <div class="shoe-price" style="margin: 0.4rem 0;">
+                    <div class="shoe-price">
                         <span class="price-current">$${shoe.price.toFixed(2)}</span>
                         ${shoe.msrp && shoe.msrp > shoe.price ? `<span class="price-msrp">$${shoe.msrp.toFixed(2)}</span>` : ''}
                     </div>
-                    <div style="font-size: 11px; color: #666; margin-top: 0.25rem;">
+                    <div style="font-size: 10px; color: #666; margin-top: 0.15rem; line-height: 1.2;">
                         ${shoe.condition ? `✨ ${shoe.condition}` : '✨ New'}
                     </div>
                 </div>
