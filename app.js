@@ -152,7 +152,7 @@ function displayShoes() {
         }
         
         return `
-            <div class="shoe-card ${isSelected ? 'selected' : ''}" onclick="openGallery(${shoe.id})">
+            <div class="shoe-card ${isSelected ? 'selected' : ''}" onclick="openShoeDetail(${shoe.id})">
                 <button class="heart-btn ${isSelected ? 'selected' : ''}" 
                         onclick="event.stopPropagation(); toggleSelection(${shoe.id}, ${!isSelected})"
                         title="${isSelected ? 'Remove from selection' : 'Add to selection'}">
@@ -219,65 +219,174 @@ function clearSelection() {
     displayShoes();
 }
 
-// Gallery functionality
-let currentGalleryShoe = null;
-let currentGalleryIndex = 0;
+// Detailed Shoe View functionality
+let currentDetailShoe = null;
+let currentDetailIndex = 0;
 
-function openGallery(shoeId) {
+window.openShoeDetail = function(shoeId) {
     const shoe = allShoes.find(s => s.id === shoeId);
-    if (!shoe || !shoe.images || shoe.images.length === 0) return;
+    if (!shoe) return;
     
-    currentGalleryShoe = shoe;
-    currentGalleryIndex = 0;
-    showGalleryImage();
-    document.getElementById('galleryModal').classList.add('active');
+    currentDetailShoe = shoe;
+    currentDetailIndex = 0;
+    showShoeDetail();
+    document.getElementById('shoeDetailModal').classList.add('active');
+    document.body.style.overflow = 'hidden'; // Prevent background scrolling
 }
 
-function closeGallery() {
-    document.getElementById('galleryModal').classList.remove('active');
-    currentGalleryShoe = null;
+window.closeShoeDetail = function() {
+    document.getElementById('shoeDetailModal').classList.remove('active');
+    document.body.style.overflow = ''; // Restore scrolling
+    currentDetailShoe = null;
 }
 
-function changeGalleryImage(direction) {
-    if (!currentGalleryShoe || !currentGalleryShoe.images) return;
+window.changeDetailImage = function(direction) {
+    if (!currentDetailShoe || !currentDetailShoe.images || currentDetailShoe.images.length === 0) return;
     
-    currentGalleryIndex += direction;
-    if (currentGalleryIndex < 0) {
-        currentGalleryIndex = currentGalleryShoe.images.length - 1;
-    } else if (currentGalleryIndex >= currentGalleryShoe.images.length) {
-        currentGalleryIndex = 0;
+    currentDetailIndex += direction;
+    if (currentDetailIndex < 0) {
+        currentDetailIndex = currentDetailShoe.images.length - 1;
+    } else if (currentDetailIndex >= currentDetailShoe.images.length) {
+        currentDetailIndex = 0;
     }
-    showGalleryImage();
+    showShoeDetail();
 }
 
-function showGalleryImage() {
-    if (!currentGalleryShoe || !currentGalleryShoe.images) return;
+function showShoeDetail() {
+    if (!currentDetailShoe) return;
     
-    const image = currentGalleryShoe.images[currentGalleryIndex];
+    const shoe = currentDetailShoe;
+    
+    // Set main image
+    const image = shoe.images && shoe.images.length > 0 ? shoe.images[currentDetailIndex] : '';
+    let imageUrl = '';
+    if (image) {
+        if (API_BASE) {
+            imageUrl = image.startsWith('http') ? image : `/uploads/${image}`;
+        } else {
+            imageUrl = image.startsWith('http') ? image : `images/${image}`;
+        }
+    }
+    
+    document.getElementById('detailMainImage').src = imageUrl;
+    
+    // Set details
+    document.getElementById('detailBrand').textContent = shoe.brand || 'Unknown Brand';
+    document.getElementById('detailModel').textContent = shoe.model || 'Unknown Model';
+    
+    // Price
+    const priceEl = document.getElementById('detailPrice');
+    priceEl.textContent = `$${shoe.price.toFixed(2)}`;
+    const msrpEl = document.getElementById('detailMsrp');
+    if (shoe.msrp && shoe.msrp > shoe.price) {
+        msrpEl.textContent = `$${shoe.msrp.toFixed(2)}`;
+        msrpEl.style.display = 'inline';
+    } else {
+        msrpEl.style.display = 'none';
+    }
+    
+    // Description
+    const descEl = document.getElementById('detailDescription');
+    if (shoe.description) {
+        descEl.textContent = shoe.description;
+        descEl.style.display = 'block';
+    } else {
+        descEl.style.display = 'none';
+    }
+    
+    // Specs
+    document.getElementById('detailSize').textContent = shoe.size || '9';
+    document.getElementById('detailCondition').textContent = shoe.condition || 'New';
+    document.getElementById('detailGender').textContent = shoe.gender || 'Mens';
+    const photoCount = (shoe.images && shoe.images.length) || 0;
+    document.getElementById('detailPhotoCount').textContent = `${photoCount} photo${photoCount !== 1 ? 's' : ''}`;
+    
+    // Thumbnails
+    const thumbnailsEl = document.getElementById('detailThumbnails');
+    if (shoe.images && shoe.images.length > 1) {
+        thumbnailsEl.innerHTML = shoe.images.map((img, idx) => {
+            let thumbUrl;
+            if (API_BASE) {
+                thumbUrl = img.startsWith('http') ? img : `/uploads/${img}`;
+            } else {
+                thumbUrl = img.startsWith('http') ? img : `images/${img}`;
+            }
+            return `
+                <div class="detail-thumbnail ${idx === currentDetailIndex ? 'active' : ''}" 
+                     onclick="changeDetailImage(${idx - currentDetailIndex})">
+                    <img src="${thumbUrl}" alt="Thumbnail ${idx + 1}">
+                </div>
+            `;
+        }).join('');
+    } else {
+        thumbnailsEl.innerHTML = '';
+    }
+    
+    // Heart button
+    const isSelected = selectedShoes.has(shoe.id);
+    const heartBtn = document.getElementById('detailHeartBtn');
+    const heartIcon = document.getElementById('detailHeartIcon');
+    const heartText = document.getElementById('detailHeartText');
+    
+    if (isSelected) {
+        heartBtn.classList.add('selected');
+        heartIcon.textContent = '❤️';
+        heartText.textContent = 'Remove from Picks';
+    } else {
+        heartBtn.classList.remove('selected');
+        heartIcon.textContent = '🤍';
+        heartText.textContent = 'Add to Picks';
+    }
+}
+
+window.toggleDetailSelection = function() {
+    if (!currentDetailShoe) return;
+    
+    const shoeId = currentDetailShoe.id;
+    const isSelected = selectedShoes.has(shoeId);
+    
+    if (isSelected) {
+        selectedShoes.delete(shoeId);
+    } else {
+        selectedShoes.add(shoeId);
+    }
+    
+    updateSelectionBar();
+    showShoeDetail(); // Refresh the detail view
+    displayShoes(); // Update the grid
+}
+
+window.zoomImage = function() {
+    if (!currentDetailShoe || !currentDetailShoe.images) return;
+    
+    const image = currentDetailShoe.images[currentDetailIndex];
     let imageUrl;
-    
     if (API_BASE) {
         imageUrl = image.startsWith('http') ? image : `/uploads/${image}`;
     } else {
         imageUrl = image.startsWith('http') ? image : `images/${image}`;
     }
     
-    document.getElementById('galleryImage').src = imageUrl;
-    document.getElementById('galleryBrand').textContent = currentGalleryShoe.brand;
-    document.getElementById('galleryModel').textContent = currentGalleryShoe.model;
-    document.getElementById('galleryCounter').innerHTML = 
-        `<span class="gallery-counter">${currentGalleryIndex + 1} of ${currentGalleryShoe.images.length}</span>`;
+    document.getElementById('zoomedImage').src = imageUrl;
+    document.getElementById('zoomModal').classList.add('active');
+}
+
+window.closeZoom = function() {
+    document.getElementById('zoomModal').classList.remove('active');
 }
 
 // Carousel functionality
 const carouselStates = new Map(); // Track current image index for each shoe
 
-function changeCarouselImage(shoeId, direction) {
+window.changeCarouselImage = function(shoeId, direction) {
     const shoe = allShoes.find(s => s.id === shoeId);
     if (!shoe || !shoe.images || shoe.images.length <= 1) return;
     
     const carousel = document.querySelector(`.image-carousel[data-shoe-id="${shoeId}"]`);
-    if (!carousel) return;
+    if (!carousel) {
+        console.log('Carousel not found for shoe', shoeId);
+        return;
+    }
     
     const currentIndex = carouselStates.get(shoeId) || 0;
     let newIndex = currentIndex + direction;
@@ -287,59 +396,80 @@ function changeCarouselImage(shoeId, direction) {
     
     carouselStates.set(shoeId, newIndex);
     
-    // Hide all images
-    carousel.querySelectorAll('.carousel-image').forEach((img, idx) => {
-        img.style.display = idx === newIndex ? 'block' : 'none';
+    // Hide all images, show the new one
+    const images = carousel.querySelectorAll('.carousel-image');
+    images.forEach((img, idx) => {
+        if (idx === newIndex) {
+            img.style.display = 'block';
+            img.style.opacity = '1';
+        } else {
+            img.style.display = 'none';
+            img.style.opacity = '0';
+        }
     });
     
     // Update dots
-    carousel.querySelectorAll('.carousel-dot').forEach((dot, idx) => {
-        dot.classList.toggle('active', idx === newIndex);
+    const dots = carousel.querySelectorAll('.carousel-dot');
+    dots.forEach((dot, idx) => {
+        if (idx === newIndex) {
+            dot.classList.add('active');
+        } else {
+            dot.classList.remove('active');
+        }
     });
 }
 
 // Auto-rotate carousels on hover
-document.addEventListener('DOMContentLoaded', () => {
-    let carouselIntervals = new Map();
-    
-    function setupCarouselAutoRotate() {
-        document.querySelectorAll('.image-carousel').forEach(carousel => {
-            const shoeId = parseInt(carousel.dataset.shoeId);
-            const shoe = allShoes.find(s => s.id === shoeId);
-            if (!shoe || !shoe.images || shoe.images.length <= 1) return;
-            
-            carousel.addEventListener('mouseenter', () => {
-                if (carouselIntervals.has(shoeId)) return;
-                const interval = setInterval(() => {
-                    changeCarouselImage(shoeId, 1);
-                }, 3000); // Change every 3 seconds
-                carouselIntervals.set(shoeId, interval);
-            });
-            
-            carousel.addEventListener('mouseleave', () => {
-                if (carouselIntervals.has(shoeId)) {
-                    clearInterval(carouselIntervals.get(shoeId));
-                    carouselIntervals.delete(shoeId);
-                }
-            });
+let carouselIntervals = new Map();
+
+function setupCarouselAutoRotate() {
+    document.querySelectorAll('.image-carousel').forEach(carousel => {
+        const shoeId = parseInt(carousel.dataset.shoeId);
+        const shoe = allShoes.find(s => s.id === shoeId);
+        if (!shoe || !shoe.images || shoe.images.length <= 1) return;
+        
+        // Remove old listeners if any
+        const newCarousel = carousel.cloneNode(true);
+        carousel.parentNode.replaceChild(newCarousel, carousel);
+        
+        newCarousel.addEventListener('mouseenter', () => {
+            if (carouselIntervals.has(shoeId)) return;
+            const interval = setInterval(() => {
+                window.changeCarouselImage(shoeId, 1);
+            }, 3000); // Change every 3 seconds
+            carouselIntervals.set(shoeId, interval);
         });
+        
+        newCarousel.addEventListener('mouseleave', () => {
+            if (carouselIntervals.has(shoeId)) {
+                clearInterval(carouselIntervals.get(shoeId));
+                carouselIntervals.delete(shoeId);
+            }
+        });
+    });
+}
+
+// Override displayShoes to setup carousel after rendering
+const originalDisplayShoes = displayShoes;
+displayShoes = function() {
+    originalDisplayShoes();
+    setTimeout(setupCarouselAutoRotate, 100);
+};
+
+// Keyboard navigation for detail modal
+document.addEventListener('keydown', (e) => {
+    const detailModal = document.getElementById('shoeDetailModal');
+    const zoomModal = document.getElementById('zoomModal');
+    
+    if (zoomModal.classList.contains('active')) {
+        if (e.key === 'Escape') closeZoom();
+        return;
     }
     
-    // Setup after shoes are displayed
-    const originalDisplayShoes = displayShoes;
-    displayShoes = function() {
-        originalDisplayShoes();
-        setTimeout(setupCarouselAutoRotate, 100);
-    };
-});
-
-// Keyboard navigation for gallery
-document.addEventListener('keydown', (e) => {
-    const gallery = document.getElementById('galleryModal');
-    if (gallery.classList.contains('active')) {
-        if (e.key === 'Escape') closeGallery();
-        if (e.key === 'ArrowLeft') changeGalleryImage(-1);
-        if (e.key === 'ArrowRight') changeGalleryImage(1);
+    if (detailModal.classList.contains('active')) {
+        if (e.key === 'Escape') closeShoeDetail();
+        if (e.key === 'ArrowLeft') changeDetailImage(-1);
+        if (e.key === 'ArrowRight') changeDetailImage(1);
     }
 });
 
