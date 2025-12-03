@@ -123,16 +123,20 @@ function displayShoes() {
         }
         
         const isSelected = selectedShoes.has(shoe.id);
+        const imageCount = (shoe.images && shoe.images.length) || 0;
+        const hasMultipleImages = imageCount > 1;
         
         return `
-            <div class="shoe-card">
-                <input type="checkbox" class="shoe-checkbox" 
-                       data-shoe-id="${shoe.id}"
-                       ${isSelected ? 'checked' : ''}
-                       onchange="toggleSelection(${shoe.id}, this.checked)">
+            <div class="shoe-card ${isSelected ? 'selected' : ''}" onclick="openGallery(${shoe.id})">
+                <button class="heart-btn ${isSelected ? 'selected' : ''}" 
+                        onclick="event.stopPropagation(); toggleSelection(${shoe.id}, ${!isSelected})"
+                        title="${isSelected ? 'Remove from selection' : 'Add to selection'}">
+                    ${isSelected ? '❤️' : '🤍'}
+                </button>
                 <div class="shoe-image-container">
                     <img src="${imageUrl}" alt="${shoe.brand} ${shoe.model}" class="shoe-image" 
                          onerror="this.src='https://via.placeholder.com/400?text=No+Image'">
+                    ${hasMultipleImages ? `<div class="image-count-badge">📷 ${imageCount} photos</div>` : ''}
                 </div>
                 <div class="shoe-info">
                     <div class="shoe-brand">${shoe.brand}</div>
@@ -143,7 +147,7 @@ function displayShoes() {
                         ${shoe.msrp && shoe.msrp > shoe.price ? `<span class="price-msrp">$${shoe.msrp.toFixed(2)}</span>` : ''}
                     </div>
                     <div style="font-size: 12px; color: #666; margin-top: 5px;">
-                        Condition: ${shoe.condition || 'New'}
+                        ${shoe.condition ? `✨ ${shoe.condition}` : '✨ New'}
                     </div>
                 </div>
             </div>
@@ -164,7 +168,8 @@ function toggleSelection(shoeId, isSelected) {
 // Update selection bar
 function updateSelectionBar() {
     const count = selectedShoes.size;
-    selectionCount.textContent = `${count} selected`;
+    const emoji = count > 0 ? '❤️' : '🤍';
+    selectionCount.innerHTML = `<span class="emoji">${emoji}</span>${count} selected`;
     
     if (count > 0) {
         selectionBar.classList.add('active');
@@ -175,16 +180,78 @@ function updateSelectionBar() {
 
 // Clear selection
 function clearSelection() {
+    if (selectedShoes.size === 0) return;
+    if (!confirm('Clear all selections?')) return;
+    
     selectedShoes.clear();
-    document.querySelectorAll('.shoe-checkbox').forEach(cb => cb.checked = false);
     updateSelectionBar();
     displayShoes();
 }
 
+// Gallery functionality
+let currentGalleryShoe = null;
+let currentGalleryIndex = 0;
+
+function openGallery(shoeId) {
+    const shoe = allShoes.find(s => s.id === shoeId);
+    if (!shoe || !shoe.images || shoe.images.length === 0) return;
+    
+    currentGalleryShoe = shoe;
+    currentGalleryIndex = 0;
+    showGalleryImage();
+    document.getElementById('galleryModal').classList.add('active');
+}
+
+function closeGallery() {
+    document.getElementById('galleryModal').classList.remove('active');
+    currentGalleryShoe = null;
+}
+
+function changeGalleryImage(direction) {
+    if (!currentGalleryShoe || !currentGalleryShoe.images) return;
+    
+    currentGalleryIndex += direction;
+    if (currentGalleryIndex < 0) {
+        currentGalleryIndex = currentGalleryShoe.images.length - 1;
+    } else if (currentGalleryIndex >= currentGalleryShoe.images.length) {
+        currentGalleryIndex = 0;
+    }
+    showGalleryImage();
+}
+
+function showGalleryImage() {
+    if (!currentGalleryShoe || !currentGalleryShoe.images) return;
+    
+    const image = currentGalleryShoe.images[currentGalleryIndex];
+    let imageUrl;
+    
+    if (API_BASE) {
+        imageUrl = image.startsWith('http') ? image : `/uploads/${image}`;
+    } else {
+        imageUrl = image.startsWith('http') ? image : `images/${image}`;
+    }
+    
+    document.getElementById('galleryImage').src = imageUrl;
+    document.getElementById('galleryBrand').textContent = currentGalleryShoe.brand;
+    document.getElementById('galleryModel').textContent = currentGalleryShoe.model;
+    document.getElementById('galleryCounter').innerHTML = 
+        `<span class="gallery-counter">${currentGalleryIndex + 1} of ${currentGalleryShoe.images.length}</span>`;
+}
+
+// Keyboard navigation for gallery
+document.addEventListener('keydown', (e) => {
+    const gallery = document.getElementById('galleryModal');
+    if (gallery.classList.contains('active')) {
+        if (e.key === 'Escape') closeGallery();
+        if (e.key === 'ArrowLeft') changeGalleryImage(-1);
+        if (e.key === 'ArrowRight') changeGalleryImage(1);
+    }
+});
+
 // Show summary
 function showSummary() {
     if (selectedShoes.size === 0) {
-        alert('Please select at least one shoe');
+        alert('👟 Please select at least one shoe you like!');
         return;
     }
     
@@ -192,19 +259,28 @@ function showSummary() {
     const totalValue = selected.reduce((sum, shoe) => sum + parseFloat(shoe.price), 0);
     
     let summaryHTML = `
-        <p><strong>Total Selected: ${selected.length} shoes</strong></p>
-        <p><strong>Total Value: $${totalValue.toFixed(2)}</strong></p>
+        <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            <p style="font-size: 18px; margin: 5px 0;"><strong>👟 Total Selected: ${selected.length} shoe${selected.length !== 1 ? 's' : ''}</strong></p>
+            <p style="font-size: 18px; margin: 5px 0;"><strong>💰 Total Value: $${totalValue.toFixed(2)}</strong></p>
+        </div>
         <hr style="margin: 20px 0;">
     `;
     
-    selected.forEach(shoe => {
+    selected.forEach((shoe, index) => {
         summaryHTML += `
             <div class="summary-item">
-                <strong>${shoe.brand} ${shoe.model}</strong><br>
-                Price: $${shoe.price.toFixed(2)}${shoe.msrp && shoe.msrp > shoe.price ? ` (MSRP: $${shoe.msrp.toFixed(2)})` : ''}<br>
-                ${shoe.description ? `Description: ${shoe.description}<br>` : ''}
-                Condition: ${shoe.condition || 'New'}<br>
-                ${shoe.images && shoe.images.length > 0 ? `Images: ${shoe.images.length} photo(s)` : ''}
+                <div style="display: flex; align-items: start; gap: 15px;">
+                    <div style="font-size: 24px;">${index + 1}.</div>
+                    <div style="flex: 1;">
+                        <strong style="font-size: 16px;">${shoe.brand} ${shoe.model}</strong><br>
+                        <span style="color: #4CAF50; font-weight: bold; font-size: 18px;">$${shoe.price.toFixed(2)}</span>
+                        ${shoe.msrp && shoe.msrp > shoe.price ? ` <span style="text-decoration: line-through; color: #999;">$${shoe.msrp.toFixed(2)}</span>` : ''}<br>
+                        ${shoe.description ? `<div style="margin: 5px 0; color: #666;">${shoe.description}</div>` : ''}
+                        <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                            ✨ ${shoe.condition || 'New'} • ${shoe.images && shoe.images.length > 0 ? `📷 ${shoe.images.length} photo${shoe.images.length !== 1 ? 's' : ''}` : 'No photos'}
+                        </div>
+                    </div>
+                </div>
             </div>
         `;
     });
@@ -218,26 +294,26 @@ function showSummary() {
 
 // Generate summary text
 function generateSummaryText(selected, totalValue) {
-    let text = `SHOE SELECTION SUMMARY\n`;
-    text += `====================\n\n`;
-    text += `Total Selected: ${selected.length} shoes\n`;
+    let text = `👟 SHOE SELECTION SUMMARY 👟\n`;
+    text += `==========================\n\n`;
+    text += `Total Selected: ${selected.length} shoe${selected.length !== 1 ? 's' : ''}\n`;
     text += `Total Value: $${totalValue.toFixed(2)}\n\n`;
     text += `SELECTED SHOES:\n`;
     text += `---------------\n\n`;
     
     selected.forEach((shoe, index) => {
         text += `${index + 1}. ${shoe.brand} ${shoe.model}\n`;
-        text += `   Price: $${shoe.price.toFixed(2)}`;
+        text += `   💰 Price: $${shoe.price.toFixed(2)}`;
         if (shoe.msrp && shoe.msrp > shoe.price) {
             text += ` (MSRP: $${shoe.msrp.toFixed(2)})`;
         }
         text += `\n`;
         if (shoe.description) {
-            text += `   Description: ${shoe.description}\n`;
+            text += `   📝 ${shoe.description}\n`;
         }
-        text += `   Condition: ${shoe.condition || 'New'}\n`;
+        text += `   ✨ Condition: ${shoe.condition || 'New'}\n`;
         if (shoe.images && shoe.images.length > 0) {
-            text += `   Images: ${shoe.images.length} photo(s)\n`;
+            text += `   📷 ${shoe.images.length} photo${shoe.images.length !== 1 ? 's' : ''}\n`;
         }
         text += `\n`;
     });

@@ -24,6 +24,11 @@
         .selection-count {
             font-weight: bold;
             margin-right: 15px;
+            font-size: 18px;
+        }
+        .selection-count .emoji {
+            font-size: 24px;
+            margin-right: 8px;
         }
         .submit-btn {
             background: #333;
@@ -39,15 +44,58 @@
         }
         .shoe-card {
             position: relative;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
         }
-        .shoe-checkbox {
+        .shoe-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        .shoe-card.selected {
+            border: 3px solid #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+        }
+        .heart-btn {
             position: absolute;
             top: 10px;
             right: 10px;
-            width: 24px;
-            height: 24px;
-            z-index: 10;
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            border-radius: 50%;
             cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .heart-btn:hover {
+            transform: scale(1.1);
+            background: white;
+        }
+        .heart-btn.selected {
+            color: #e91e63;
+            animation: heartBeat 0.5s;
+        }
+        @keyframes heartBeat {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.3); }
+            50% { transform: scale(1.1); }
+        }
+        .image-count-badge {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            z-index: 5;
         }
         .summary-modal {
             display: none;
@@ -108,6 +156,75 @@
             text-decoration: none;
             z-index: 100;
         }
+        .gallery-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+        }
+        .gallery-modal.active {
+            display: flex;
+        }
+        .gallery-content {
+            position: relative;
+            max-width: 90vw;
+            max-height: 90vh;
+            text-align: center;
+        }
+        .gallery-content img {
+            max-width: 100%;
+            max-height: 80vh;
+            object-fit: contain;
+        }
+        .gallery-close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+        }
+        .gallery-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 50px;
+            cursor: pointer;
+            padding: 20px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        .gallery-nav:hover {
+            background: rgba(255,255,255,0.4);
+        }
+        .gallery-prev {
+            left: 20px;
+        }
+        .gallery-next {
+            right: 20px;
+        }
+        .gallery-info {
+            color: white;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        .gallery-counter {
+            font-size: 14px;
+            opacity: 0.8;
+        }
     </style>
 </head>
 <body>
@@ -128,8 +245,8 @@
     <main class="main">
         <div class="container">
             <div class="hero-section">
-                <h1>Premium Sneaker Collection</h1>
-                <p class="subtitle">All Size 9 Mens • Select shoes you're interested in below</p>
+                <h1>👟 Premium Sneaker Collection 👟</h1>
+                <p class="subtitle">All Size 9 Mens • Click the ❤️ on shoes you like!</p>
             </div>
 
             <div class="filters-section">
@@ -161,21 +278,40 @@
     </main>
 
     <div class="selection-bar" id="selectionBar">
-        <div style="display: flex; align-items: center; justify-content: space-between;">
-            <div>
-                <span class="selection-count" id="selectionCount">0 selected</span>
-                <button class="submit-btn" onclick="showSummary()">Submit Selections</button>
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <span class="selection-count" id="selectionCount"><span class="emoji">❤️</span>0 selected</span>
+                <button class="submit-btn" onclick="showSummary()" style="background: #4CAF50; font-weight: bold;">
+                    <i class="fas fa-paper-plane"></i> Send My Picks!
+                </button>
             </div>
             <button class="submit-btn" onclick="clearSelection()" style="background: #999;">Clear All</button>
+        </div>
+    </div>
+
+    <!-- Image Gallery Lightbox -->
+    <div class="gallery-modal" id="galleryModal">
+        <div class="gallery-content">
+            <button class="gallery-close" onclick="closeGallery()">&times;</button>
+            <button class="gallery-nav gallery-prev" onclick="changeGalleryImage(-1)">&#8249;</button>
+            <button class="gallery-nav gallery-next" onclick="changeGalleryImage(1)">&#8250;</button>
+            <img id="galleryImage" src="" alt="">
+            <div class="gallery-info">
+                <div id="galleryBrand"></div>
+                <div id="galleryModel"></div>
+                <div id="galleryCounter"></div>
+            </div>
         </div>
     </div>
 
     <div class="summary-modal" id="summaryModal">
         <div class="summary-content">
             <button class="close-btn" onclick="closeSummary()">Close</button>
-            <h2>Selected Shoes Summary</h2>
+            <h2>🎉 Your Shoe Picks! 🎉</h2>
             <div id="summaryContent"></div>
-            <button class="copy-btn" onclick="copySummary()">Copy Summary</button>
+            <button class="copy-btn" onclick="copySummary()">
+                <i class="fas fa-copy"></i> Copy Summary
+            </button>
         </div>
     </div>
 
@@ -185,7 +321,7 @@
         </div>
     </footer>
 
-    <script src="app.js"></script>
+    <script src="app-simple.js"></script>
 </body>
 </html>
 
