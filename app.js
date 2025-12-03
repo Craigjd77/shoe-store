@@ -43,13 +43,13 @@ async function loadShoes() {
             }
         } else {
             // Load from JSON file (GitHub Pages)
-            // Try multiple possible paths based on GitHub Pages structure
-            const basePath = window.location.pathname.replace(/\/[^\/]*$/, '') || '';
+            // GitHub Pages serves from root, so path should be relative to site root
+            const basePath = window.location.pathname.split('/').slice(0, -1).join('/') || '';
             const possiblePaths = [
-                'data/shoes.json',
-                './data/shoes.json',
+                basePath + '/data/shoes.json',
                 '/shoe-store/data/shoes.json',
-                basePath + '/data/shoes.json'
+                'data/shoes.json',
+                './data/shoes.json'
             ];
             
             let loaded = false;
@@ -60,23 +60,30 @@ async function loadShoes() {
                     console.log('Trying to load from:', path);
                     const response = await fetch(path);
                     if (response.ok) {
-                        allShoes = await response.json();
-                        loaded = true;
-                        console.log('✅ Successfully loaded from:', path);
-                        break;
+                        const data = await response.json();
+                        if (data && Array.isArray(data)) {
+                            allShoes = data;
+                            loaded = true;
+                            console.log('✅ Successfully loaded', allShoes.length, 'shoes from:', path);
+                            break;
+                        } else {
+                            console.log('❌ Invalid JSON format from:', path);
+                            lastError = new Error('Invalid JSON format');
+                        }
                     } else {
-                        console.log('❌ Failed:', path, response.status, response.statusText);
-                        lastError = new Error(`Failed to load: ${response.status} ${response.statusText}`);
+                        console.log('❌ HTTP error:', path, response.status, response.statusText);
+                        lastError = new Error(`HTTP ${response.status}: ${response.statusText}`);
                     }
                 } catch (err) {
-                    console.log('❌ Error loading from:', path, err.message);
+                    console.log('❌ Fetch error from:', path, err.message);
                     lastError = err;
                     continue;
                 }
             }
             
             if (!loaded) {
-                throw lastError || new Error('Could not load shoes.json from any path.');
+                console.error('Failed to load from all paths. Last error:', lastError);
+                throw lastError || new Error('Could not load shoes.json. Check browser console for details.');
             }
         }
         
