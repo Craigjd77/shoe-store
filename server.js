@@ -223,6 +223,57 @@ app.get('/api/shoes', (req, res) => {
   });
 });
 
+// Export all shoes as JSON for static site
+app.get('/api/shoes/export', (req, res) => {
+  const query = `
+    SELECT 
+      s.*,
+      GROUP_CONCAT(si.image_path) as images,
+      (SELECT image_path FROM shoe_images WHERE shoe_id = s.id AND is_primary = 1 LIMIT 1) as primary_image
+    FROM shoes s
+    LEFT JOIN shoe_images si ON s.id = si.shoe_id
+    GROUP BY s.id
+    ORDER BY s.created_at DESC
+  `;
+  
+  db.all(query, [], (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    
+    const shoes = rows.map(shoe => ({
+      id: shoe.id,
+      brand: shoe.brand,
+      model: shoe.model,
+      description: shoe.description || '',
+      msrp: parseFloat(shoe.msrp),
+      price: parseFloat(shoe.price),
+      size: shoe.size || '9',
+      gender: shoe.gender || 'Mens',
+      condition: shoe.condition || 'New',
+      images: shoe.images ? shoe.images.split(',') : [],
+      primary_image: shoe.primary_image || (shoe.images ? shoe.images.split(',')[0] : ''),
+      created_at: shoe.created_at
+    }));
+    
+    // Write to public/data/shoes.json
+    const dataDir = path.join(__dirname, 'public', 'data');
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    
+    const jsonPath = path.join(dataDir, 'shoes.json');
+    fs.writeFileSync(jsonPath, JSON.stringify(shoes, null, 2));
+    
+    res.json({ 
+      success: true, 
+      count: shoes.length,
+      path: jsonPath,
+      message: `Exported ${shoes.length} shoes to ${jsonPath}`
+    });
+  });
+});
+
 // Get import status - which images are processed vs new
 app.get('/api/shoes/import-status', (req, res) => {
   const shoesFolder = path.join(__dirname, 'SHOES');

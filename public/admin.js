@@ -1,5 +1,16 @@
 const API_BASE = 'http://localhost:3000/api';
 
+// Export JSON after changes
+async function exportShoesJSON() {
+    try {
+        const response = await fetch(`${API_BASE}/shoes/export`);
+        const result = await response.json();
+        console.log('Exported shoes to JSON:', result.message);
+    } catch (error) {
+        console.error('Error exporting JSON:', error);
+    }
+}
+
 // DOM Elements
 const addShoeForm = document.getElementById('addShoeForm');
 const imageUploadForm = document.getElementById('imageUploadForm');
@@ -92,6 +103,7 @@ addShoeForm.addEventListener('submit', async (e) => {
         if (response.ok) {
             const result = await response.json();
             alert('Shoe added successfully! Now upload images.');
+            exportShoesJSON(); // Export JSON after creation
             
             // Show image upload section
             selectedShoeId.value = result.id;
@@ -159,6 +171,7 @@ imageUploadForm.addEventListener('submit', async (e) => {
         
         if (response.ok) {
             alert('Images uploaded successfully!');
+            exportShoesJSON(); // Export JSON after image upload
             imageUploadForm.reset();
             imagePreview.innerHTML = '';
             selectedShoeId.value = '';
@@ -264,6 +277,7 @@ async function deleteShoe(shoeId) {
         
         if (response.ok) {
             alert('Shoe deleted successfully');
+            exportShoesJSON(); // Export JSON after deletion
             // Force reload to clear any cached data
             setTimeout(() => {
                 loadManageShoes();
@@ -450,6 +464,7 @@ async function deleteSelectedShoes() {
         
         if (failed.length === 0) {
             alert(`✓ Successfully deleted ${selectedIds.length} shoe(s)!`);
+            exportShoesJSON(); // Export JSON after bulk deletion
             selectedShoesForDeletion.clear();
             loadImagesForManagement();
             loadManageShoes();
@@ -783,6 +798,7 @@ async function createShoeFromSelectedImages() {
                 const result = await response.json();
                 if (result.success) {
                     alert(`✓ Shoe created with ${imageFilenames.length} images!`);
+                    exportShoesJSON(); // Export JSON after creation
                     modal.remove();
                     selectedImages.clear();
                     loadImagesForManagement();
@@ -901,6 +917,7 @@ async function editShoeFromImages(shoeId) {
             
             if (response.ok) {
                 alert('✓ Shoe updated successfully!');
+                exportShoesJSON(); // Export JSON after update
                 modal.remove();
                 loadImagesForManagement();
                 loadManageShoes();
@@ -932,6 +949,7 @@ async function deleteShoeFromImages(shoeId) {
         
         if (response.ok) {
             alert('✓ Shoe deleted successfully!');
+            exportShoesJSON(); // Export JSON after deletion
             loadImagesForManagement();
             loadManageShoes();
         } else {

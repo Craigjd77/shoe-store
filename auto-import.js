@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const http = require('http');
 const { analyzeShoesFolder, parseFilename } = require('./analyze-shoes');
 const { convertHeicToJpg, isHeicFile } = require('./image-converter');
 const { identifyShoeAI } = require('./ai-identifier');
@@ -543,10 +544,40 @@ async function processNewShoes(dbConnection) {
     }
 
     console.log(`[Auto-Import] ✅ Processing complete\n`);
+    
+    // Export JSON after processing
+    exportShoesJSON();
   } catch (error) {
     console.error('[Auto-Import] ✗ Fatal error in processNewShoes:', error);
   } finally {
     processingLock = false;
+  }
+}
+
+// Export shoes to JSON file
+function exportShoesJSON() {
+  try {
+    const PORT = process.env.PORT || 3000;
+    const options = {
+      hostname: 'localhost',
+      port: PORT,
+      path: '/api/shoes/export',
+      method: 'GET'
+    };
+    
+    const req = http.request(options, (res) => {
+      if (res.statusCode === 200) {
+        console.log('[Auto-Import] ✓ Exported shoes to JSON');
+      }
+    });
+    
+    req.on('error', (err) => {
+      // Silently fail - server might not be ready yet
+    });
+    
+    req.end();
+  } catch (error) {
+    // Silently fail
   }
 }
 

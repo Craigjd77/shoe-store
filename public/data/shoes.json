@@ -1,0 +1,209 @@
+[
+  {
+    "id": 83,
+    "brand": "New Balance",
+    "model": "Classic 574",
+    "description": "Avocado light khaki New Balance Classic 574",
+    "msrp": 120,
+    "price": 100,
+    "size": "9",
+    "gender": "Mens",
+    "condition": "Excellent",
+    "images": [
+      "shoe-83-1764541417927-0.jpg",
+      "shoe-83-1764541417930-1.jpg",
+      "shoe-83-1764541417933-2.jpg",
+      "shoe-83-1764541417937-3.jpg"
+    ],
+    "primary_image": "shoe-83-1764541417927-0.jpg",
+    "created_at": "2025-11-30 22:23:37"
+  },
+  {
+    "id": 82,
+    "brand": "Nike",
+    "model": "cross trainer",
+    "description": "greenish brown? Nike cross trainer",
+    "msrp": 80,
+    "price": 80,
+    "size": "9",
+    "gender": "Mens",
+    "condition": "Excellent",
+    "images": [
+      "shoe-82-1764541341056-0.jpg",
+      "shoe-82-1764541341060-1.jpg",
+      "shoe-82-1764541341064-2.jpg",
+      "shoe-82-1764541341067-3.jpg"
+    ],
+    "primary_image": "shoe-82-1764541341056-0.jpg",
+    "created_at": "2025-11-30 22:22:21"
+  },
+  {
+    "id": 81,
+    "brand": "Saucony",
+    "model": "JAZZ vegan",
+    "description": "grey and blue Saucony vegan lows",
+    "msrp": 100,
+    "price": 80,
+    "size": "9",
+    "gender": "Mens",
+    "condition": "Excellent",
+    "images": [
+      "shoe-81-1764541070472-0.jpg",
+      "shoe-81-1764541070475-1.jpg",
+      "shoe-81-1764541070478-2.jpg",
+      "shoe-81-1764541070480-3.jpg"
+    ],
+    "primary_image": "shoe-81-1764541070472-0.jpg",
+    "created_at": "2025-11-30 22:17:50"
+  },
+  {
+    "id": 77,
+    "brand": "BED | STU",
+    "model": "32 Bar Blues",
+    "description": "Burgundy - merlot BED | STU 32 Bar Blues",
+    "msrp": 150,
+    "price": 120,
+    "size": "9",
+    "gender": "Mens",
+    "condition": "Excellent",
+    "images": [
+      "shoe-77-1764540305463-0.jpg",
+      "shoe-77-1764540305467-1.jpg",
+      "shoe-77-1764540305471-2.jpg",
+      "shoe-77-1764540305475-3.jpg"
+    ],
+    "primary_image": "shoe-77-1764540305463-0.jpg",
+    "created_at": "2025-11-30 22:05:05"
+  },
+  {
+    "id": 76,
+    "brand": "Kizik",
+    "model": "groovy slip ons",
+    "description": "light brown Kizzik groovy slip ons",
+    "msrp": 150,
+    "price": 100,
+    "size": "9",
+    "gender": "Mens",
+    "condition": "Excellent",
+    "images": [
+      "shoe-76-1764540178543-0.jpg",
+      "shoe-76-1764540178549-1.jpg",
+      "shoe-76-1764540178553-2.jpg",
+      "shoe-76-1764540178558-3.jpg"
+    ],
+    "primary_image": "shoe-76-1764540178543-0.jpg",
+    "created_at": "2025-11-30 22:02:58"
+  },
+  {
+    "id": 75,
+    "brand": "Mark Nason",
+    "model": "Los Angeles",
+    "description": "off white/green Mark Nason Los Angeles",
+    "msrp": 120,
+    "price": 100,
+    "size": "9",
+    "gender": "Mens",
+    "condition": "Excellent",
+    "images": [
+      "shoe-75-1764540127612-0.jpg",
+      "shoe-75-1764540127617-1.jpg",
+      "shoe-75-1764540127621-2.jpg",
+      "shoe-75-1764540127624-3.jpg"
+    ],
+    "primary_image": "shoe-75-1764540127612-0.jpg",
+    "created_at": "2025-11-30 22:02:07"
+  },
+  {
+    "id": 74,
+    "brand": "New Balance",
+    "model": "50 sometings",
+    "description": "navy and khaki New Balance 50 sometings",
+    "msrp": 90,
+    "price": 50,
+    "size": "9",
+    "gender": "Mens",
+    "condition": "Excellent",
+    "images": [
+      "shoe-74-1764538815187-0.jpg",
+      "shoe-74-1764538832642-1.jpg",
+      "shoe-74-1764538841859-2.jpg"
+    ],
+    "primary_image": "shoe-74-1764538815187-0.jpg",
+    "created_at": "2025-11-30 21:40:01"
+  },
+  {
+    "id": 44,
+    "brand": "Olukai",
+    "model": "Boat Shoes",
+    "description": "Grey Olukai Boat Shoes",
+    "msrp": 120,
+    "price": 100,
+    "size": "9",
+    "gender": "Mens",
+    "condition": "Excellent",
+    "images": [
+      "shoe-44-1764537383800-0.jpg",
+      "shoe-44-1764537411227-1.jpg",
+      "shoe-44-1764537465777-2.jpg",
+      "shoe-44-1764537480374-3.jpg"
+    ],
+    "primary_image": "shoe-44-1764537383800-0.jpg",
+    "created_at": "2025-11-30 21:15:45"
+  },
+  {
+    "id": 42,
+    "brand": "Adidas",
+    "model": "grey shoes",
+    "description": "grey",
+    "msrp": 120,
+    "price": 60,
+    "size": "9",
+    "gender": "Mens",
+    "condition": "Excellent",
+    "images": [
+      "shoe-42-1764526706734-0.jpg",
+      "shoe-42-1764539035050-1.jpg",
+      "shoe-42-1764539044489-2.jpg",
+      "shoe-42-1764539052964-3.jpg"
+    ],
+    "primary_image": "shoe-42-1764526706734-0.jpg",
+    "created_at": "2025-11-30 18:18:26"
+  },
+  {
+    "id": 3,
+    "brand": "Olukia",
+    "model": "Mio Li",
+    "description": "mens everyday athletic shoes",
+    "msrp": 120,
+    "price": 100,
+    "size": "9",
+    "gender": "Mens",
+    "condition": "New",
+    "images": [
+      "shoe-3-1764523078665-3.jpg",
+      "shoe-3-1764523078670-4.jpg",
+      "shoe-3-1764523078674-5.jpg",
+      "shoe-3-1764523078677-6.jpg"
+    ],
+    "primary_image": "shoe-3-1764523078665-3.jpg",
+    "created_at": "2025-11-30 17:17:58"
+  },
+  {
+    "id": 1,
+    "brand": "ON Cloud 3",
+    "model": "IMG 9742",
+    "description": "IMG_9742",
+    "msrp": 120,
+    "price": 100,
+    "size": "9",
+    "gender": "Mens",
+    "condition": "New",
+    "images": [
+      "shoe-1-1764522612255-0.jpg",
+      "shoe-1-1764522612260-1.jpg",
+      "shoe-1-1764522612265-2.jpg"
+    ],
+    "primary_image": "shoe-1-1764522612255-0.jpg",
+    "created_at": "2025-11-30 17:10:12"
+  }
+]
