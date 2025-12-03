@@ -43,11 +43,26 @@ async function loadShoes() {
             }
         } else {
             // Load from JSON file (GitHub Pages)
-            const response = await fetch('data/shoes.json');
-            if (!response.ok) {
-                throw new Error('JSON file not found');
+            try {
+                const response = await fetch('data/shoes.json');
+                if (!response.ok) {
+                    throw new Error(`Failed to load: ${response.status} ${response.statusText}`);
+                }
+                allShoes = await response.json();
+            } catch (fetchError) {
+                console.error('Error loading shoes.json:', fetchError);
+                // Try alternative path
+                try {
+                    const altResponse = await fetch('/shoe-store/data/shoes.json');
+                    if (altResponse.ok) {
+                        allShoes = await altResponse.json();
+                    } else {
+                        throw fetchError;
+                    }
+                } catch (altError) {
+                    throw new Error('Could not load shoes data. Please check if data/shoes.json exists.');
+                }
             }
-            allShoes = await response.json();
         }
         
         // Process images array
@@ -65,7 +80,16 @@ async function loadShoes() {
         shoesGrid.style.display = 'grid';
     } catch (error) {
         console.error('Error loading shoes:', error);
-        loading.innerHTML = '<p>Error loading shoes. Please try again later.</p>';
+        loading.innerHTML = `
+            <div style="text-align: center; padding: 2rem;">
+                <p style="color: #e74c3c; font-size: 18px; margin-bottom: 1rem;">❌ Error loading shoes</p>
+                <p style="color: #666; margin-bottom: 0.5rem;">${error.message}</p>
+                <p style="color: #999; font-size: 14px;">Please check the browser console for details.</p>
+                <button onclick="location.reload()" style="margin-top: 1rem; padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                    Retry
+                </button>
+            </div>
+        `;
     }
 }
 
