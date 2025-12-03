@@ -43,25 +43,40 @@ async function loadShoes() {
             }
         } else {
             // Load from JSON file (GitHub Pages)
-            try {
-                const response = await fetch('data/shoes.json');
-                if (!response.ok) {
-                    throw new Error(`Failed to load: ${response.status} ${response.statusText}`);
-                }
-                allShoes = await response.json();
-            } catch (fetchError) {
-                console.error('Error loading shoes.json:', fetchError);
-                // Try alternative path
+            // Try multiple possible paths based on GitHub Pages structure
+            const basePath = window.location.pathname.replace(/\/[^\/]*$/, '') || '';
+            const possiblePaths = [
+                'data/shoes.json',
+                './data/shoes.json',
+                '/shoe-store/data/shoes.json',
+                basePath + '/data/shoes.json'
+            ];
+            
+            let loaded = false;
+            let lastError = null;
+            
+            for (const path of possiblePaths) {
                 try {
-                    const altResponse = await fetch('/shoe-store/data/shoes.json');
-                    if (altResponse.ok) {
-                        allShoes = await altResponse.json();
+                    console.log('Trying to load from:', path);
+                    const response = await fetch(path);
+                    if (response.ok) {
+                        allShoes = await response.json();
+                        loaded = true;
+                        console.log('✅ Successfully loaded from:', path);
+                        break;
                     } else {
-                        throw fetchError;
+                        console.log('❌ Failed:', path, response.status, response.statusText);
+                        lastError = new Error(`Failed to load: ${response.status} ${response.statusText}`);
                     }
-                } catch (altError) {
-                    throw new Error('Could not load shoes data. Please check if data/shoes.json exists.');
+                } catch (err) {
+                    console.log('❌ Error loading from:', path, err.message);
+                    lastError = err;
+                    continue;
                 }
+            }
+            
+            if (!loaded) {
+                throw lastError || new Error('Could not load shoes.json from any path.');
             }
         }
         
