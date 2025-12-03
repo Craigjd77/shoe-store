@@ -126,6 +126,23 @@ function displayShoes() {
         const imageCount = (shoe.images && shoe.images.length) || 0;
         const hasMultipleImages = imageCount > 1;
         
+        // Show thumbnail previews if multiple images
+        let thumbnailPreviews = '';
+        if (hasMultipleImages && shoe.images.length > 1) {
+            const thumbnails = shoe.images.slice(0, 3).map((img, idx) => {
+                let thumbUrl;
+                if (API_BASE) {
+                    thumbUrl = img.startsWith('http') ? img : `/uploads/${img}`;
+                } else {
+                    thumbUrl = img.startsWith('http') ? img : `images/${img}`;
+                }
+                return `<img src="${thumbUrl}" class="thumbnail-preview" style="width: 30px; height: 30px; object-fit: cover; border-radius: 4px; border: 2px solid white; margin-right: 2px;">`;
+            }).join('');
+            if (shoe.images.length > 3) {
+                thumbnailPreviews += `<div class="thumbnail-more">+${shoe.images.length - 3}</div>`;
+            }
+        }
+        
         return `
             <div class="shoe-card ${isSelected ? 'selected' : ''}" onclick="openGallery(${shoe.id})">
                 <button class="heart-btn ${isSelected ? 'selected' : ''}" 
@@ -133,10 +150,17 @@ function displayShoes() {
                         title="${isSelected ? 'Remove from selection' : 'Add to selection'}">
                     ${isSelected ? '❤️' : '🤍'}
                 </button>
-                <div class="shoe-image-container">
+                <div class="shoe-image-container" style="position: relative;">
                     <img src="${imageUrl}" alt="${shoe.brand} ${shoe.model}" class="shoe-image" 
                          onerror="this.src='https://via.placeholder.com/400?text=No+Image'">
-                    ${hasMultipleImages ? `<div class="image-count-badge">📷 ${imageCount} photos</div>` : ''}
+                    ${hasMultipleImages ? `
+                        <div class="image-count-badge" style="cursor: pointer;" title="Click to view all ${imageCount} photos">
+                            📷 ${imageCount} photos
+                        </div>
+                        <div class="thumbnail-strip" style="position: absolute; bottom: 35px; left: 10px; right: 10px; display: flex; gap: 3px; background: rgba(0,0,0,0.6); padding: 5px; border-radius: 4px;">
+                            ${thumbnailPreviews}
+                        </div>
+                    ` : ''}
                 </div>
                 <div class="shoe-info">
                     <div class="shoe-brand">${shoe.brand}</div>

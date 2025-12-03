@@ -90,12 +90,33 @@
             position: absolute;
             bottom: 10px;
             left: 10px;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0,0,0,0.8);
             color: white;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 11px;
+            padding: 6px 10px;
+            border-radius: 15px;
+            font-size: 12px;
             z-index: 5;
+            font-weight: bold;
+        }
+        .thumbnail-strip {
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .shoe-card:hover .thumbnail-strip {
+            opacity: 1;
+        }
+        .thumbnail-more {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            background: rgba(255,255,255,0.9);
+            color: #333;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            border: 2px solid white;
         }
         .summary-modal {
             display: none;
@@ -246,7 +267,7 @@
         <div class="container">
             <div class="hero-section">
                 <h1>👟 Premium Sneaker Collection 👟</h1>
-                <p class="subtitle">All Size 9 Mens • Click the ❤️ on shoes you like!</p>
+                <p class="subtitle">All Size 9 Mens • Click shoes to see all photos • Click ❤️ to select favorites!</p>
             </div>
 
             <div class="filters-section">
